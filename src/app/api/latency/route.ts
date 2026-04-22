@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 export const runtime = "edge";
-export const preferredRegion = ["iad1", "fra1", "sin1"];
+
 
 // Strict allowlist for URL checking to prevent SSRF
 const ALLOWED_HOSTS = [
