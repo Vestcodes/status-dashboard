@@ -10,10 +10,8 @@
       }
     }
   },
-  "css": {
-    "parser": {
-      "cssModules": true
-    }
+  "files": {
+    "ignore": ["**/*.css"]
   },
   "formatter": {
     "enabled": true,
