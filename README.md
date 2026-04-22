@@ -3,5 +3,5 @@
 Central control plane for monitoring infrastructure health and tracking active deployments.
 
 <!-- DEPLOYMENT_HASH_START -->
-Latest deployment commit: fb2f5b2
+Latest deployment commit: 91de52a
 <!-- DEPLOYMENT_HASH_END -->
