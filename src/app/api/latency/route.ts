@@ -57,13 +57,13 @@ export async function GET(req: NextRequest) {
 		});
 	} catch (error: any) {
 		// Differentiate between URL parsing errors and Fetch errors
-		if (error.name === 'TypeError' && error.message.includes('Invalid URL')) {
+		if (error.name === "TypeError" && error.message.includes("Invalid URL")) {
 			return NextResponse.json(
 				{ error: "Invalid URL format." },
 				{ status: 400 },
 			);
 		}
-		
+
 		return NextResponse.json(
 			{
 				url: urlParam,
