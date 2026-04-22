@@ -1,43 +1,36 @@
+import { createClient } from '@/utils/supabase/server'
 import { Activity, AlertTriangle, CheckCircle2, Clock, Server, Globe2, MoreHorizontal } from "lucide-react";
 import Link from "next/link";
 
-const projects = [
-	{
-		name: "Vestcodes Core",
-		slug: "vestcodes",
-		domain: "status.vestcodes.co",
-		uptime: "99.99%",
-		status: "operational",
-		services: [
-		  { name: "API", region: "iad1", latency: "45ms", status: "operational" },
-		  { name: "Postgres", region: "fra1", latency: "62ms", status: "operational" }
-		]
-	},
-	{
-		name: "EasyCareHub",
-		slug: "ech",
-		domain: "ech.status.vestcodes.co",
-		uptime: "100%",
-		status: "operational",
-		services: [
-		  { name: "API", region: "iad1", latency: "38ms", status: "operational" },
-		  { name: "Cron", region: "global", latency: "110ms", status: "operational" }
-		]
-	},
-	{
-		name: "Sunny AI Assistant",
-		slug: "sunny",
-		domain: "sunny.status.vestcodes.co",
-		uptime: "100%",
-		status: "operational",
-		services: [
-		  { name: "Inference", region: "global", latency: "400ms", status: "operational" },
-		  { name: "Gateway", region: "iad1", latency: "42ms", status: "operational" }
-		]
-	},
-];
+export default async function Home() {
+	const supabase = await createClient()
 
-export default function Home() {
+	const { data: projectsData } = await supabase
+		.from('projects')
+		.select(`
+			*,
+			services (*)
+		`)
+		.eq('is_public', true)
+		.order('created_at', { ascending: true })
+
+	// We'll format the projects data directly
+	const projects = projectsData?.map(p => ({
+		id: p.id,
+		name: p.name,
+		slug: p.slug,
+		domain: p.domain,
+		uptime: "100%", // We'll compute this dynamically later
+		status: "operational",
+		services: p.services?.map((s: any) => ({
+			id: s.id,
+			name: s.name,
+			region: s.region,
+			latency: "Checking...", // Will be updated via realtime/cron
+			status: "operational" // Default to operational for now
+		})) || []
+	})) || []
+
 	return (
 		<div className="space-y-16 animate-in fade-in duration-700 slide-in-from-bottom-4">
 			<header className="space-y-4 pt-4">
@@ -59,15 +52,14 @@ export default function Home() {
 						<Server size={18} className="text-[#FF9933] opacity-80" /> 
 						Active Projects
 					</h2>
-					<button className="text-xs mono-accent px-3 py-1.5 glass-panel hover:bg-white/5 transition-colors">
-						+ Add Project
-					</button>
+					<Link href="/login" className="text-xs mono-accent px-3 py-1.5 glass-panel hover:bg-white/5 transition-colors">
+						Sysadmin Login
+					</Link>
 				</div>
 				
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 					{projects.map((p) => (
 						<div key={p.slug} className="glass-panel p-6 flex flex-col group relative overflow-hidden transition-all hover:border-white/20 hover:bg-white/[0.03]">
-							{/* Subtle background glow effect */}
 							<div className="absolute -top-24 -right-24 w-48 h-48 bg-[#22C55E] opacity-5 rounded-full blur-3xl group-hover:opacity-10 transition-opacity"></div>
 							
 							<div className="flex justify-between items-start mb-6 z-10">
@@ -80,14 +72,13 @@ export default function Home() {
 										</a>
 									</div>
 								</div>
-								<div className="p-2 bg-white/5 rounded-full">
-									<MoreHorizontal size={16} className="text-muted-text" />
-								</div>
 							</div>
 
 							<div className="space-y-3 z-10 flex-1">
-								{p.services.map(s => (
-									<div key={s.name} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
+								{p.services.length === 0 ? (
+									<span className="text-xs text-muted-text italic">No services configured yet.</span>
+								) : p.services.map((s: any) => (
+									<div key={s.id} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
 										<div className="flex items-center gap-3">
 											<div className={`status-dot ${s.status}`}></div>
 											<span className="text-sm text-off-white/80">{s.name}</span>
@@ -104,6 +95,12 @@ export default function Home() {
 							</div>
 						</div>
 					))}
+					
+					{projects.length === 0 && (
+						<div className="col-span-full py-12 text-center text-muted-text border border-white/5 rounded-xl border-dashed">
+							No projects currently being monitored.
+						</div>
+					)}
 				</div>
 			</section>
 
