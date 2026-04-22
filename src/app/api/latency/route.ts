@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-export const runtime = "edge";
+
 
 
 // Strict allowlist for URL checking to prevent SSRF
