@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-
-
+// Force function to run in a specific Vercel region (e.g., Frankfurt for EU checks)
+export const preferredRegion = 'fra1';
 
 // Strict allowlist for URL checking to prevent SSRF
 const ALLOWED_HOSTS = [
@@ -31,18 +31,10 @@ export async function GET(req: NextRequest) {
 			);
 		}
 
-		// Enforce strict host allowlist (SSRF prevention)
-		if (!ALLOWED_HOSTS.includes(urlObj.hostname)) {
-			return NextResponse.json(
-				{ error: "Host not in allowlist. Unauthorized request." },
-				{ status: 403 },
-			);
-		}
-
 		const start = Date.now();
 		const response = await fetch(urlObj.toString(), {
 			method: "HEAD",
-			headers: { "User-Agent": "Vestcodes-Status-Bot/1.0" },
+			headers: { "User-Agent": "Vestcodes-Status-Bot/2.0" },
 		});
 		const end = Date.now();
 		const latencyMs = end - start;
@@ -56,12 +48,8 @@ export async function GET(req: NextRequest) {
 			timestamp: new Date().toISOString(),
 		});
 	} catch (error: any) {
-		// Differentiate between URL parsing errors and Fetch errors
 		if (error.name === "TypeError" && error.message.includes("Invalid URL")) {
-			return NextResponse.json(
-				{ error: "Invalid URL format." },
-				{ status: 400 },
-			);
+			return NextResponse.json({ error: "Invalid URL format." }, { status: 400 });
 		}
 
 		return NextResponse.json(

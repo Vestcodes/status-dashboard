@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-	title: "Vestcodes Status",
-	description:
-		"Real-time uptime and latency monitoring for Vestcodes client projects.",
+	title: "Status | Vestcodes",
+	description: "Real-time control plane and health monitoring for Vestcodes digital infrastructure.",
 };
 
 export default function RootLayout({
@@ -14,20 +13,20 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="en">
-			<body className="antialiased bg-jet-black w-full min-h-screen text-off-white">
-				<div className="border-b border-steel-gray/50 bg-jet-black/80 backdrop-blur-md p-4 sticky top-0 z-50">
-					<div className="max-w-6xl mx-auto flex justify-between items-center">
+			<body className="antialiased w-full text-off-white selection:bg-saffron-tint/30">
+				<div className="w-full flex justify-center sticky top-0 z-50 pt-6 px-4">
+					<nav className="glass-panel w-full max-w-4xl px-6 py-4 flex justify-between items-center">
 						<a
 							href="/"
-							className="font-display font-bold text-xl tracking-tight flex items-center gap-2"
+							className="font-medium text-[1.1rem] tracking-tight flex items-center gap-3 transition-opacity hover:opacity-80"
 						>
-							<span className="w-3 h-3 bg-sun-yellow rounded-full animate-pulse shadow-[0_0_10px_var(--color-sun-yellow)]"></span>
-							VESTCODES.STATUS
+							<div className="w-4 h-4 rounded-[4px] bg-[#FF9933] opacity-80" />
+							Vestcodes Control
 						</a>
-						<div className="mono-accent text-off-white/60">SYSTEMS_NOMINAL</div>
-					</div>
+						<div className="mono-accent text-muted-text">v2.0.0 (Global)</div>
+					</nav>
 				</div>
-				<main className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 pt-12">
+				<main className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 pt-10 pb-20">
 					{children}
 				</main>
 			</body>
