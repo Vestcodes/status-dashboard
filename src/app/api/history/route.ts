@@ -1,6 +1,28 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 
+const VERCEL_REGIONS: Record<string, string> = {
+  'arn1': 'Stockholm, Sweden (arn1)',
+  'bom1': 'Mumbai, India (bom1)',
+  'cdg1': 'Paris, France (cdg1)',
+  'cle1': 'Cleveland, USA (cle1)',
+  'cpt1': 'Cape Town, South Africa (cpt1)',
+  'dub1': 'Dublin, Ireland (dub1)',
+  'fra1': 'Frankfurt, Germany (fra1)',
+  'gru1': 'São Paulo, Brazil (gru1)',
+  'hkg1': 'Hong Kong (hkg1)',
+  'hnd1': 'Tokyo, Japan (hnd1)',
+  'iad1': 'Washington, D.C., USA (iad1)',
+  'icn1': 'Seoul, South Korea (icn1)',
+  'kix1': 'Osaka, Japan (kix1)',
+  'lhr1': 'London, UK (lhr1)',
+  'pdx1': 'Portland, USA (pdx1)',
+  'sfo1': 'San Francisco, USA (sfo1)',
+  'sin1': 'Singapore (sin1)',
+  'syd1': 'Sydney, Australia (syd1)',
+  'global': 'Global Edge Network (Average)'
+};
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const projectId = searchParams.get('projectId');
@@ -44,19 +66,9 @@ export async function GET(request: Request) {
   // Initialize Global Average bucket
   regionMap['global'] = {
     id: 'global',
-    name: 'Global Edge Network (Average)',
+    name: VERCEL_REGIONS['global'],
     hourlyMap: {}
   };
-
-  // Predefine standard regions we expect to monitor from so they show up even if data is missing
-  const expectedRegions = ['us-east', 'eu-central', 'ap-south'];
-  expectedRegions.forEach(r => {
-    regionMap[r] = {
-      id: r,
-      name: r.toUpperCase() + ' Region',
-      hourlyMap: {}
-    };
-  });
 
   if (statuses) {
     statuses.forEach(st => {
@@ -68,7 +80,7 @@ export async function GET(request: Request) {
       if (!regionMap[r] && r !== 'global') {
         regionMap[r] = {
           id: r,
-          name: r.toUpperCase() + ' Region',
+          name: VERCEL_REGIONS[r] || (r.toUpperCase() + ' Region'),
           hourlyMap: {}
         };
       }
