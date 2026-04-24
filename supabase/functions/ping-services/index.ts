@@ -2,10 +2,15 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 serve(async (req) => {
   try {
-    // We need the Vercel dashboard URL to ping the API routes
-    // Fallback to the production domain if env var isn't set in Supabase
+    console.log("Ping-services invoked!", req.method, req.url);
     const dashboardUrl = Deno.env.get('DASHBOARD_URL') || 'https://status.vestcodes.co';
     const cronSecret = Deno.env.get('CRON_SECRET') || '';
+
+    if (!cronSecret) {
+      console.error("CRON_SECRET is missing from Deno.env!");
+    } else {
+      console.log("CRON_SECRET is present.");
+    }
 
     const regions = [
       'arn1', 'bom1', 'cdg1', 'cle1', 'cpt1', 'dub1', 'dxb1', 'fra1',
@@ -13,8 +18,6 @@ serve(async (req) => {
       'sfo1', 'sin1', 'syd1', 'yul1'
     ];
 
-    // The Supabase Edge Function acts as the fan-out dispatcher,
-    // triggering the Vercel Edge endpoints to execute their localized pings.
     const promises = regions.map(async (region) => {
       try {
         const response = await fetch(`${dashboardUrl}/api/ping/${region}`, {
@@ -23,13 +26,15 @@ serve(async (req) => {
             'Authorization': `Bearer ${cronSecret}`
           }
         });
-        return { region, status: response.status, ok: response.ok };
+        const text = await response.text();
+        return { region, status: response.status, ok: response.ok, body: text.substring(0, 100) };
       } catch (e: any) {
         return { region, error: e.message };
       }
     });
 
     const results = await Promise.all(promises);
+    console.log("Fan-out results:", JSON.stringify(results));
 
     return new Response(
       JSON.stringify({ 
@@ -40,6 +45,7 @@ serve(async (req) => {
       { headers: { 'Content-Type': 'application/json' } }
     )
   } catch (error: any) {
+    console.error("Fatal error:", error.message);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
