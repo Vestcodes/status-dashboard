@@ -10,7 +10,7 @@ export default async function StatusPage({ params }: { params: { slug: string } 
 	const slug = params.slug;
 	const supabase = await createClient();
 
-	const { data: projects } = await supabase
+	const { data: projects, error } = await supabase
 		.from('projects')
 		.select(`
 			*,
@@ -21,9 +21,12 @@ export default async function StatusPage({ params }: { params: { slug: string } 
 	const project = projects && projects.length > 0 ? projects[0] : null;
 
 	if (!project) {
-		// Log for debugging
-		console.error(`Project not found for slug: ${slug}`);
-		notFound();
+		return (
+			<div className="p-10">
+				<h1>Error Debug</h1>
+				<pre>{JSON.stringify({ slug, projects, error }, null, 2)}</pre>
+			</div>
+		)
 	}
 
 	const serviceIds = project.services?.map((s: any) => s.id) || [];
