@@ -1,5 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
-import { Activity, ArrowLeft, Clock, ShieldCheck, Globe2, Server } from "lucide-react";
+import { Activity, ArrowLeft, Clock, ShieldCheck, Globe2, Server, AlertTriangle, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -114,6 +114,14 @@ export default async function StatusPage({ params }: { params: { slug: string } 
 							'text-[#EF4444]'
 						}`}>{globalStatus}</span>
 					</div>
+				</div>
+				
+				<div className="flex items-center gap-4 pt-2">
+					<Link href={`/status/${slug}/incidents`} className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-medium text-off-white transition-all">
+						<AlertTriangle size={14} className="text-[#F59E0B]" />
+						View Incident History
+						<ArrowRight size={14} className="opacity-50" />
+					</Link>
 				</div>
 			</header>
 
