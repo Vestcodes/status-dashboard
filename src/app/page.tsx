@@ -1,5 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
-import { Activity, AlertTriangle, CheckCircle2, Clock, Server, Globe2, MoreHorizontal } from "lucide-react";
+import { Activity, AlertTriangle, CheckCircle2, Clock, Server, Globe2, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 export const dynamic = 'force-dynamic';
@@ -117,8 +117,8 @@ export default async function Home() {
 				
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 					{projects.map((p) => (
-						<div key={p.slug} className={`glass-panel p-6 flex flex-col group relative overflow-hidden transition-all hover:border-white/20 hover:bg-white/[0.03] ${p.status === 'down' ? 'border-[#EF4444]/30' : ''}`}>
-							<div className={`absolute -top-24 -right-24 w-48 h-48 opacity-5 rounded-full blur-3xl group-hover:opacity-10 transition-opacity ${
+						<Link href={`/status/${p.slug}`} key={p.slug} className={`glass-panel p-6 flex flex-col group relative overflow-hidden transition-all hover:border-white/30 hover:bg-white/[0.04] ${p.status === 'down' ? 'border-[#EF4444]/30' : ''} cursor-pointer`}>
+							<div className={`absolute -top-24 -right-24 w-48 h-48 opacity-5 rounded-full blur-3xl group-hover:opacity-15 transition-opacity duration-500 ${
 								p.status === 'operational' ? 'bg-[#22C55E]' :
 								p.status === 'degraded' ? 'bg-[#F59E0B]' :
 								'bg-[#EF4444]'
@@ -126,36 +126,46 @@ export default async function Home() {
 							
 							<div className="flex justify-between items-start mb-6 z-10">
 								<div>
-									<h3 className="text-xl font-medium text-off-white/90 mb-1">{p.name}</h3>
+									<h3 className="text-xl font-medium text-off-white/90 mb-1 group-hover:text-white transition-colors">{p.name}</h3>
 									<div className="flex items-center gap-2">
 										<Globe2 size={12} className="text-muted-text" />
-										<a href={`https://${p.domain}`} target="_blank" className="mono-accent text-muted-text text-[11px] hover:text-[#FF9933] transition-colors">
+										<span className="mono-accent text-muted-text text-[11px] group-hover:text-[#FF9933] transition-colors">
 											{p.domain}
-										</a>
+										</span>
 									</div>
 								</div>
+								<div className={`status-dot ${p.status} mt-2`}></div>
 							</div>
 
 							<div className="space-y-3 z-10 flex-1">
 								{p.services.length === 0 ? (
 									<span className="text-xs text-muted-text italic">No services configured yet.</span>
-								) : p.services.map((s: any) => (
+								) : p.services.slice(0, 3).map((s: any) => (
 									<div key={s.id} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
 										<div className="flex items-center gap-3">
-											<div className={`status-dot ${s.status}`}></div>
+											<div className={`w-1.5 h-1.5 rounded-full ${s.status === 'operational' ? 'bg-[#22C55E]' : s.status === 'degraded' ? 'bg-[#F59E0B]' : s.status === 'down' ? 'bg-[#EF4444]' : 'bg-gray-500'}`}></div>
 											<span className="text-sm text-off-white/80">{s.name}</span>
-											<span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/5 text-muted-text uppercase">{s.region}</span>
 										</div>
 										<span className="font-mono text-xs text-muted-text">{s.latency}</span>
 									</div>
 								))}
+								{p.services.length > 3 && (
+									<div className="text-xs text-muted-text text-center pt-2 mono-accent">
+										+{p.services.length - 3} more endpoints
+									</div>
+								)}
 							</div>
 
 							<div className="mt-6 pt-4 border-t border-white/5 flex justify-between items-center z-10">
-								<span className="font-mono text-xs text-muted-text">UPTIME 30D</span>
-								<span className="font-mono text-sm text-[#22C55E]">{p.uptime}</span>
+								<div className="flex items-center gap-2">
+									<span className="font-mono text-xs text-muted-text">UPTIME 30D</span>
+									<span className="font-mono text-sm text-[#22C55E]">{p.uptime}</span>
+								</div>
+								<div className="flex items-center gap-1.5 text-xs mono-accent text-muted-text group-hover:text-off-white transition-colors">
+									Details <ArrowRight size={12} className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
+								</div>
 							</div>
-						</div>
+						</Link>
 					))}
 					
 					{projects.length === 0 && (
@@ -173,7 +183,7 @@ export default async function Home() {
 						Incident History
 					</h2>
 				</div>
-				<div className="glass-panel p-8 flex flex-col items-center justify-center text-center space-y-3">
+				<div className="glass-panel p-8 flex flex-col items-center justify-center text-center space-y-3 hover:bg-white/[0.02] transition-colors">
 					<div className="w-12 h-12 rounded-full bg-[#22C55E]/10 flex items-center justify-center mb-2">
 						<CheckCircle2 size={24} className="text-[#22C55E] opacity-80" />
 					</div>

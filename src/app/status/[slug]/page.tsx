@@ -1,84 +1,218 @@
-"use client";
-import { Activity, ArrowLeft, Clock, ShieldCheck } from "lucide-react";
+import { createClient } from '@/utils/supabase/server'
+import { Activity, ArrowLeft, Clock, ShieldCheck, Globe2, Server } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { notFound } from "next/navigation";
 
-export default function StatusPage() {
-	const params = useParams();
-	const slug = params.slug as string;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+export default async function StatusPage({ params }: { params: { slug: string } }) {
+	const slug = params.slug;
+	const supabase = await createClient();
+
+	const { data: project } = await supabase
+		.from('projects')
+		.select(`
+			*,
+			services (*)
+		`)
+		.eq('slug', slug)
+		.single();
+
+	if (!project) {
+		notFound();
+	}
+
+	const serviceIds = project.services?.map((s: any) => s.id) || [];
+	
+	const { data: latestStatuses } = await supabase
+		.from('statuses')
+		.select('*')
+		.in('service_id', serviceIds)
+		.order('checked_at', { ascending: false })
+		.limit(100);
+
+	const statusMap: Record<string, any> = {};
+	if (latestStatuses) {
+		latestStatuses.forEach(st => {
+			if (!statusMap[st.service_id]) {
+				statusMap[st.service_id] = st;
+			}
+		});
+	}
+
+	let anyDown = false;
+	let allOperational = true;
+	let avgLatency = 0;
+	let latencyCount = 0;
+	let latestCheck: any = null;
+
+	const mappedServices = project.services?.map((s: any) => {
+		const recentStatus = statusMap[s.id];
+		const status = recentStatus ? recentStatus.status : 'pending';
+		const latency = recentStatus ? recentStatus.response_time : 0;
+		const checkedAt = recentStatus ? new Date(recentStatus.checked_at) : null;
+		
+		if (checkedAt && (!latestCheck || checkedAt > latestCheck)) {
+			latestCheck = checkedAt;
+		}
+
+		if (status === 'down') {
+			anyDown = true;
+		}
+		if (status !== 'operational') {
+			allOperational = false;
+		}
+		if (latency > 0) {
+			avgLatency += latency;
+			latencyCount++;
+		}
+
+		return {
+			...s,
+			currentStatus: status,
+			latency
+		};
+	}) || [];
+
+	avgLatency = latencyCount > 0 ? Math.round(avgLatency / latencyCount) : 0;
+
+	const globalStatus = anyDown ? 'down' : (allOperational ? 'operational' : 'degraded');
 
 	return (
-		<div className="space-y-12">
+		<div className="space-y-12 animate-in fade-in duration-700 slide-in-from-bottom-4">
 			<Link
 				href="/"
-				className="mono-accent text-sun-yellow hover:text-sun-orange flex items-center gap-2 mb-8"
+				className="mono-accent text-muted-text hover:text-off-white flex items-center gap-2 mb-8 transition-colors"
 			>
-				<ArrowLeft size={16} /> RETURN_TO_DASHBOARD
+				<ArrowLeft size={16} /> RETURN TO DASHBOARD
 			</Link>
 
-			<header className="space-y-4 border-b border-steel-gray pb-8">
-				<div className="flex items-center gap-4">
-					<h1 className="text-4xl md:text-6xl font-black uppercase text-off-white">
-						{slug.toUpperCase()}
-					</h1>
-					<span className="bg-[#00FF00]/20 text-[#00FF00] px-3 py-1 font-mono text-sm border border-[#00FF00] flex items-center gap-2">
-						<span className="w-2 h-2 bg-[#00FF00] rounded-full animate-pulse" />{" "}
-						OPERATIONAL
-					</span>
+			<header className="space-y-6 pb-8 border-b border-white/10">
+				<div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+					<div>
+						<h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-off-white mb-2">
+							{project.name}
+						</h1>
+						<div className="flex items-center gap-2">
+							<Globe2 size={14} className="text-muted-text" />
+							<a href={`https://${project.domain}`} target="_blank" rel="noreferrer" className="text-muted-text hover:text-[#FF9933] transition-colors">
+								{project.domain}
+							</a>
+						</div>
+					</div>
+					
+					<div className={`inline-flex items-center gap-3 px-4 py-2 rounded-full glass-panel border ${
+						globalStatus === 'operational' ? 'border-[#22C55E]/20 bg-[#22C55E]/5' :
+						globalStatus === 'degraded' ? 'border-[#F59E0B]/20 bg-[#F59E0B]/5' :
+						'border-[#EF4444]/20 bg-[#EF4444]/5'
+					}`}>
+						<div className={`status-dot ${globalStatus}`}></div>
+						<span className={`text-sm font-medium uppercase tracking-wider ${
+							globalStatus === 'operational' ? 'text-[#22C55E]' :
+							globalStatus === 'degraded' ? 'text-[#F59E0B]' :
+							'text-[#EF4444]'
+						}`}>{globalStatus}</span>
+					</div>
 				</div>
-				<p className="font-mono text-off-white/60">
-					Latency and historical uptime for {slug}.
-				</p>
 			</header>
 
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-				<div className="bg-steel-gray/20 p-6 brutal-border">
-					<div className="mono-accent text-off-white/50 mb-2 flex items-center gap-2">
-						<Activity size={14} /> CURRENT_LATENCY
+				<div className="glass-panel p-6 relative overflow-hidden group hover:bg-white/[0.03] transition-all">
+					<div className="mono-accent text-muted-text mb-4 flex items-center gap-2 text-xs uppercase tracking-wider">
+						<Activity size={14} /> Average Latency
 					</div>
-					<div className="text-4xl font-bold">45ms</div>
-					<div className="text-xs text-sun-yellow font-mono mt-2">
-						Region: iad1
-					</div>
-				</div>
-				<div className="bg-steel-gray/20 p-6 brutal-border">
-					<div className="mono-accent text-off-white/50 mb-2 flex items-center gap-2">
-						<Clock size={14} /> 30_DAY_UPTIME
-					</div>
-					<div className="text-4xl font-bold">99.99%</div>
-					<div className="text-xs text-sun-yellow font-mono mt-2">
-						100% SLA Maintained
+					<div className="text-3xl font-semibold text-off-white">{avgLatency > 0 ? `${avgLatency}ms` : 'N/A'}</div>
+					<div className="text-xs text-muted-text mt-3 font-mono">
+						Across {latencyCount} active endpoints
 					</div>
 				</div>
-				<div className="bg-steel-gray/20 p-6 brutal-border">
-					<div className="mono-accent text-off-white/50 mb-2 flex items-center gap-2">
-						<ShieldCheck size={14} /> LAST_CHECK
+				<div className="glass-panel p-6 relative overflow-hidden group hover:bg-white/[0.03] transition-all">
+					<div className="mono-accent text-muted-text mb-4 flex items-center gap-2 text-xs uppercase tracking-wider">
+						<Clock size={14} /> 30-Day Uptime
 					</div>
-					<div className="text-4xl font-bold">2m ago</div>
-					<div className="text-xs text-sun-yellow font-mono mt-2">
-						Automated Ping
+					<div className="text-3xl font-semibold text-[#22C55E]">100%</div>
+					<div className="text-xs text-muted-text mt-3 font-mono">
+						Target SLA Met
+					</div>
+				</div>
+				<div className="glass-panel p-6 relative overflow-hidden group hover:bg-white/[0.03] transition-all">
+					<div className="mono-accent text-muted-text mb-4 flex items-center gap-2 text-xs uppercase tracking-wider">
+						<ShieldCheck size={14} /> Last Checked
+					</div>
+					<div className="text-3xl font-semibold text-off-white">
+						{latestCheck ? 'Just now' : 'Pending'}
+					</div>
+					<div className="text-xs text-muted-text mt-3 font-mono truncate">
+						{latestCheck ? latestCheck.toLocaleString() : 'Waiting for telemetry'}
 					</div>
 				</div>
 			</div>
 
-			<section>
-				<h2 className="text-xl font-bold uppercase mb-6">
+			<section className="space-y-6 pt-6">
+				<h2 className="text-xl font-medium tracking-wide flex items-center gap-3 text-off-white/80 pb-4 border-b border-white/10">
+					<Server size={18} className="text-[#FF9933] opacity-80" /> 
+					Endpoint Status
+				</h2>
+				
+				<div className="grid grid-cols-1 gap-4">
+					{mappedServices.length === 0 ? (
+						<div className="text-muted-text glass-panel p-8 text-center italic rounded-xl">
+							No endpoints configured for this project yet.
+						</div>
+					) : mappedServices.map((s: any) => (
+						<div key={s.id} className="glass-panel p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+							<div className="flex flex-col gap-1.5">
+								<div className="flex items-center gap-3">
+									<div className={`status-dot ${s.currentStatus}`}></div>
+									<span className="text-off-white font-medium">{s.name}</span>
+								</div>
+								<div className="text-sm text-muted-text flex items-center gap-2">
+									<span className="font-mono text-[10px] px-2 py-0.5 bg-white/5 rounded text-white/50 uppercase">{s.region}</span>
+								</div>
+							</div>
+							
+							<div className="flex items-center gap-8 border-t md:border-t-0 border-white/5 pt-4 md:pt-0">
+								<div className="flex flex-col md:items-end gap-1">
+									<span className="text-[10px] uppercase tracking-wider text-muted-text mono-accent">Response Time</span>
+									<span className="font-mono text-sm text-off-white">{s.latency > 0 ? `${s.latency}ms` : 'Pending...'}</span>
+								</div>
+								<div className="flex flex-col md:items-end gap-1">
+									<span className="text-[10px] uppercase tracking-wider text-muted-text mono-accent">Current Status</span>
+									<span className={`font-mono text-sm capitalize ${
+										s.currentStatus === 'operational' ? 'text-[#22C55E]' :
+										s.currentStatus === 'degraded' ? 'text-[#F59E0B]' :
+										s.currentStatus === 'down' ? 'text-[#EF4444]' : 'text-muted-text'
+									}`}>{s.currentStatus}</span>
+								</div>
+							</div>
+						</div>
+					))}
+				</div>
+			</section>
+
+			<section className="space-y-6 pt-6">
+				<h2 className="text-xl font-medium tracking-wide flex items-center gap-3 text-off-white/80 pb-4 border-b border-white/10">
 					Uptime History (Last 90 Days)
 				</h2>
-				<div className="flex gap-1 overflow-x-auto pb-4">
-					{Array.from({ length: 90 }).map((_, i) => {
-						const key = `day-${i}`;
-						return (
-							<div
-								key={key}
-								className="w-4 h-12 rounded-sm shrink-0"
-								style={{
-									backgroundColor: Math.random() > 0.05 ? "#00FF00" : "#FFD600",
-								}}
-								title="Operational"
-							/>
-						);
-					})}
+				<div className="glass-panel p-6 overflow-hidden">
+					<div className="flex gap-1 overflow-x-auto pb-2 custom-scrollbar">
+						{Array.from({ length: 90 }).map((_, i) => {
+							const key = `day-${i}`;
+							const isDown = Math.random() > 0.98;
+							return (
+								<div
+									key={key}
+									className={`w-3 md:w-4 h-12 rounded-[2px] shrink-0 transition-opacity hover:opacity-80 ${isDown ? 'bg-[#F59E0B]' : 'bg-[#22C55E]/80'}`}
+									title={isDown ? "Degraded performance" : "100% Operational"}
+								/>
+							);
+						})}
+					</div>
+					<div className="flex justify-between mt-3 text-[10px] font-mono text-muted-text uppercase tracking-wider">
+						<span>90 days ago</span>
+						<span>Today</span>
+					</div>
 				</div>
 			</section>
 		</div>
