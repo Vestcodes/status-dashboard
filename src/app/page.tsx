@@ -19,18 +19,30 @@ export default async function Home() {
 
 	const serviceIds = projectsData?.flatMap(p => p.services?.map((s:any) => s.id) || []) || [];
 
+	const thirtyDaysAgo = new Date();
+	thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
 	const { data: latestStatuses } = await supabase
 		.from('statuses')
 		.select('*')
 		.in('service_id', serviceIds)
 		.order('checked_at', { ascending: false })
-		.limit(500);
+		.limit(2000);
 
 	const statusMap: Record<string, any> = {};
+	const uptimeStats: Record<string, { total: number, up: number }> = {};
+
 	if (latestStatuses) {
 		latestStatuses.forEach(st => {
 			if (!statusMap[st.service_id]) {
 				statusMap[st.service_id] = st;
+			}
+			if (!uptimeStats[st.service_id]) {
+			    uptimeStats[st.service_id] = { total: 0, up: 0 };
+			}
+			uptimeStats[st.service_id].total++;
+			if (st.status === 'operational' || st.status === 'degraded') {
+				uptimeStats[st.service_id].up++;
 			}
 		});
 	}
@@ -42,6 +54,9 @@ export default async function Home() {
 		let allOperational = true;
 		let anyDown = false;
 		
+		let projectTotal = 0;
+		let projectUp = 0;
+
 		const mappedServices = p.services?.map((s: any) => {
 			const recentStatus = statusMap[s.id];
 			const status = recentStatus ? recentStatus.status : 'pending';
@@ -52,6 +67,11 @@ export default async function Home() {
 				downCount++;
 			}
 			if (status !== 'operational') allOperational = false;
+
+			if (uptimeStats[s.id]) {
+				projectTotal += uptimeStats[s.id].total;
+				projectUp += uptimeStats[s.id].up;
+			}
 
 			return {
 				id: s.id,
@@ -66,12 +86,19 @@ export default async function Home() {
 		if (projectStatus === 'down') globalStatus = 'down';
 		else if (projectStatus === 'degraded' && globalStatus !== 'down') globalStatus = 'degraded';
 
+		let uptimeStr = "100%";
+		if (projectTotal > 0) {
+			const uptimePct = (projectUp / projectTotal) * 100;
+			// Only show decimals if it's not exactly 100%
+			uptimeStr = uptimePct === 100 ? "100%" : `${uptimePct.toFixed(2)}%`;
+		}
+
 		return {
 			id: p.id,
 			name: p.name,
 			slug: p.slug,
 			domain: p.domain,
-			uptime: "100%", // Mock for now
+			uptime: uptimeStr,
 			status: projectStatus,
 			services: mappedServices
 		};
@@ -159,7 +186,7 @@ export default async function Home() {
 							<div className="mt-6 pt-4 border-t border-white/5 flex justify-between items-center z-10">
 								<div className="flex items-center gap-2">
 									<span className="font-mono text-xs text-muted-text">UPTIME 30D</span>
-									<span className="font-mono text-sm text-[#22C55E]">{p.uptime}</span>
+									<span className={`font-mono text-sm ${p.uptime === '100%' ? 'text-[#22C55E]' : parseFloat(p.uptime) >= 99 ? 'text-[#F59E0B]' : 'text-[#EF4444]'}`}>{p.uptime}</span>
 								</div>
 								<div className="flex items-center gap-1.5 text-xs mono-accent text-muted-text group-hover:text-off-white transition-colors">
 									Details <ArrowRight size={12} className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />

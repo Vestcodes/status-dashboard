@@ -1,0 +1,61 @@
+Medplum FHIR points load runner
+{
+  "baseUrl": "https://fhir.dev.ovok.com",
+  "clientId": "28b147ac-f98a-401d-9f7b-06365c05f34e",
+  "clientSecret": "<redacted>",
+  "totalPoints": 100000,
+  "totalRequests": 100000,
+  "concurrency": 25,
+  "mode": "read",
+  "timeoutMs": 30000,
+  "dryRun": false
+}
+Authenticated. Token expires in ~3600s (will refresh automatically).
+[progress] completed=850/100000 ok=850 failed=0 rps=170.00 pointsApprox=850/100000
+[progress] completed=1768/100000 ok=1768 failed=0 rps=176.78 pointsApprox=1768/100000
+[progress] completed=2602/100000 ok=2602 failed=0 rps=173.47 pointsApprox=2602/100000
+[progress] completed=3511/100000 ok=3511 failed=0 rps=175.55 pointsApprox=3511/100000
+[progress] completed=4447/100000 ok=4447 failed=0 rps=177.87 pointsApprox=4447/100000
+[progress] completed=5386/100000 ok=5386 failed=0 rps=179.52 pointsApprox=5386/100000
+[progress] completed=6298/100000 ok=6298 failed=0 rps=179.93 pointsApprox=6298/100000
+[progress] completed=7197/100000 ok=7197 failed=0 rps=179.91 pointsApprox=7197/100000
+[progress] completed=8135/100000 ok=8135 failed=0 rps=180.76 pointsApprox=8135/100000
+[progress] completed=9031/100000 ok=9031 failed=0 rps=180.60 pointsApprox=9031/100000
+[progress] completed=9967/100000 ok=9967 failed=0 rps=181.20 pointsApprox=9967/100000
+[progress] completed=10900/100000 ok=10900 failed=0 rps=181.65 pointsApprox=10900/100000
+[progress] completed=11815/100000 ok=11815 failed=0 rps=181.75 pointsApprox=11815/100000
+[progress] completed=12723/100000 ok=12723 failed=0 rps=181.74 pointsApprox=12723/100000
+[progress] completed=13580/100000 ok=13580 failed=0 rps=181.05 pointsApprox=13580/100000
+[progress] completed=14487/100000 ok=14487 failed=0 rps=181.07 pointsApprox=14487/100000
+[progress] completed=15417/100000 ok=15417 failed=0 rps=181.36 pointsApprox=15417/100000
+[progress] completed=16348/100000 ok=16348 failed=0 rps=181.62 pointsApprox=16348/100000
+[progress] completed=17273/100000 ok=17273 failed=0 rps=181.80 pointsApprox=17273/100000
+[progress] completed=18202/100000 ok=18202 failed=0 rps=182.00 pointsApprox=18202/100000
+[progress] completed=19131/100000 ok=19131 failed=0 rps=182.18 pointsApprox=19131/100000
+[progress] completed=20000/100000 ok=20000 failed=0 rps=181.80 pointsApprox=20000/100000
+[progress] completed=20930/100000 ok=20930 failed=0 rps=181.98 pointsApprox=20930/100000
+[progress] completed=21863/100000 ok=21863 failed=0 rps=182.17 pointsApprox=21863/100000
+[progress] completed=22797/100000 ok=22797 failed=0 rps=182.36 pointsApprox=22797/100000
+[progress] completed=23704/100000 ok=23704 failed=0 rps=182.32 pointsApprox=23704/100000
+[progress] completed=24606/100000 ok=24606 failed=0 rps=182.25 pointsApprox=24606/100000
+[progress] completed=25536/100000 ok=25536 failed=0 rps=182.38 pointsApprox=25536/100000
+[progress] completed=26421/100000 ok=26421 failed=0 rps=182.19 pointsApprox=26421/100000
+[progress] completed=27358/100000 ok=27358 failed=0 rps=182.37 pointsApprox=27358/100000
+[progress] completed=28293/100000 ok=28293 failed=0 rps=182.52 pointsApprox=28293/100000
+[progress] completed=29171/100000 ok=29171 failed=0 rps=182.30 pointsApprox=29171/100000
+[progress] completed=30105/100000 ok=30105 failed=0 rps=182.44 pointsApprox=30105/100000
+[progress] completed=31027/100000 ok=31027 failed=0 rps=182.49 pointsApprox=31027/100000
+[progress] completed=31929/100000 ok=31929 failed=0 rps=182.43 pointsApprox=31929/100000
+[progress] completed=32859/100000 ok=32859 failed=0 rps=182.53 pointsApprox=32859/100000
+[progress] completed=33794/100000 ok=33794 failed=0 rps=182.65 pointsApprox=33794/100000
+[progress] completed=34675/100000 ok=34675 failed=0 rps=182.48 pointsApprox=34675/100000
+[progress] completed=35594/100000 ok=35594 failed=0 rps=182.52 pointsApprox=35594/100000
+[progress] completed=36525/100000 ok=36525 failed=0 rps=182.61 pointsApprox=36525/100000
+[progress] completed=37457/100000 ok=37457 failed=0 rps=182.70 pointsApprox=37457/100000
+[progress] completed=38346/100000 ok=38346 failed=0 rps=182.58 pointsApprox=38346/100000
+[progress] completed=39276/100000 ok=39276 failed=0 rps=182.66 pointsApprox=39276/100000
+[progress] completed=40191/100000 ok=40191 failed=0 rps=182.67 pointsApprox=40191/100000
+[progress] completed=41107/100000 ok=41107 failed=0 rps=182.68 pointsApprox=41107/100000
+[progress] completed=42017/100000 ok=42017 failed=0 rps=182.66 pointsApprox=42017/100000
+[progress] completed=42941/100000 ok=42941 failed=0 rps=182.71 pointsApprox=42941/100000
+[progress] completed=43838/100000 ok=43838 failed=0 rps=182.64 pointsApprox=43838/100000

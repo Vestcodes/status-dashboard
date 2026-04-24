@@ -1,0 +1,575 @@
+Starting Claude Code $everything simulator (REDUCED LOAD).
+Targeting 366 specific patients 3 times per minute (every 20 seconds).
+Estimated burn rate: ~25,000 points per minute.
+[2026-04-24T20:00:10.678Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:00:53.580Z] Sweep 2: Firing $everything for 366 patients...
+[2026-04-24T20:00:54.107Z] Sweep 3: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:01:10.176Z
+Sweeps fired in last 60s: 3
+Approx points burned: 25,026
+CURRENT REMAINING QUOTA: NaN
+======================================================
+
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:02:10.177Z
+Sweeps fired in last 60s: 0
+Approx points burned: 0
+CURRENT REMAINING QUOTA: 76,647
+======================================================
+
+[2026-04-24T20:02:15.476Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:02:16.173Z] Sweep 2: Firing $everything for 366 patients...
+[2026-04-24T20:02:17.043Z] Sweep 3: Firing $everything for 366 patients...
+[2026-04-24T20:02:50.880Z] Sweep 4: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:03:10.178Z
+Sweeps fired in last 60s: 4
+Approx points burned: 33,368
+CURRENT REMAINING QUOTA: 76,647
+======================================================
+
+[2026-04-24T20:03:12.532Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:03:31.476Z] Sweep 2: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:04:10.180Z
+Sweeps fired in last 60s: 2
+Approx points burned: 16,684
+CURRENT REMAINING QUOTA: 68,770
+======================================================
+
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:05:10.180Z
+Sweeps fired in last 60s: 0
+Approx points burned: 0
+CURRENT REMAINING QUOTA: 68,770
+======================================================
+
+[2026-04-24T20:05:37.625Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:05:38.730Z] Sweep 2: Firing $everything for 366 patients...
+[2026-04-24T20:05:40.387Z] Sweep 3: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:06:10.181Z
+Sweeps fired in last 60s: 3
+Approx points burned: 25,026
+CURRENT REMAINING QUOTA: 68,770
+======================================================
+
+[2026-04-24T20:06:51.963Z] Sweep 1: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:07:10.181Z
+Sweeps fired in last 60s: 1
+Approx points burned: 8,342
+CURRENT REMAINING QUOTA: 99,861
+======================================================
+
+[2026-04-24T20:07:21.548Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:07:48.339Z] Sweep 2: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:08:10.182Z
+Sweeps fired in last 60s: 2
+Approx points burned: 16,684
+CURRENT REMAINING QUOTA: 92,025
+======================================================
+
+[2026-04-24T20:08:22.381Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:09:00.731Z] Sweep 2: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:09:10.183Z
+Sweeps fired in last 60s: 2
+Approx points burned: 16,684
+CURRENT REMAINING QUOTA: 91,984
+======================================================
+
+[2026-04-24T20:09:33.731Z] Sweep 1: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:10:10.184Z
+Sweeps fired in last 60s: 1
+Approx points burned: 8,342
+CURRENT REMAINING QUOTA: 91,904
+======================================================
+
+[2026-04-24T20:10:12.230Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:10:42.769Z] Sweep 2: Firing $everything for 366 patients...
+[2026-04-24T20:10:44.680Z] Sweep 3: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:11:10.183Z
+Sweeps fired in last 60s: 3
+Approx points burned: 25,026
+CURRENT REMAINING QUOTA: 92,094
+======================================================
+
+[2026-04-24T20:11:12.464Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:11:24.011Z] Sweep 2: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:12:10.185Z
+Sweeps fired in last 60s: 2
+Approx points burned: 16,684
+CURRENT REMAINING QUOTA: 84,395
+======================================================
+
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:13:10.185Z
+Sweeps fired in last 60s: 0
+Approx points burned: 0
+CURRENT REMAINING QUOTA: 84,395
+======================================================
+
+[2026-04-24T20:13:35.487Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:13:35.994Z] Sweep 2: Firing $everything for 366 patients...
+[2026-04-24T20:13:36.521Z] Sweep 3: Firing $everything for 366 patients...
+[2026-04-24T20:13:51.276Z] Sweep 4: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:14:10.186Z
+Sweeps fired in last 60s: 4
+Approx points burned: 33,368
+CURRENT REMAINING QUOTA: 84,395
+======================================================
+
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:15:10.185Z
+Sweeps fired in last 60s: 0
+Approx points burned: 0
+CURRENT REMAINING QUOTA: 76,494
+======================================================
+
+[2026-04-24T20:15:41.609Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:15:42.622Z] Sweep 2: Firing $everything for 366 patients...
+[2026-04-24T20:15:43.081Z] Sweep 3: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:16:10.186Z
+Sweeps fired in last 60s: 3
+Approx points burned: 25,026
+CURRENT REMAINING QUOTA: 76,494
+======================================================
+
+[2026-04-24T20:16:51.103Z] Sweep 1: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:17:10.186Z
+Sweeps fired in last 60s: 1
+Approx points burned: 8,342
+CURRENT REMAINING QUOTA: 99,849
+======================================================
+
+[2026-04-24T20:17:28.901Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:17:53.539Z] Sweep 2: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:18:10.187Z
+Sweeps fired in last 60s: 2
+Approx points burned: 16,684
+CURRENT REMAINING QUOTA: 92,002
+======================================================
+
+[2026-04-24T20:18:27.176Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:18:30.049Z] Sweep 2: Firing $everything for 366 patients...
+[2026-04-24T20:19:02.718Z] Sweep 3: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:19:10.187Z
+Sweeps fired in last 60s: 3
+Approx points burned: 25,026
+CURRENT REMAINING QUOTA: 84,195
+======================================================
+
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:20:10.188Z
+Sweeps fired in last 60s: 0
+Approx points burned: 0
+CURRENT REMAINING QUOTA: 76,266
+======================================================
+
+[2026-04-24T20:20:52.282Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:20:52.734Z] Sweep 2: Firing $everything for 366 patients...
+[2026-04-24T20:20:54.307Z] Sweep 3: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:21:10.189Z
+Sweeps fired in last 60s: 3
+Approx points burned: 25,026
+CURRENT REMAINING QUOTA: 76,266
+======================================================
+
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:22:10.190Z
+Sweeps fired in last 60s: 0
+Approx points burned: 0
+CURRENT REMAINING QUOTA: 99,925
+======================================================
+
+[2026-04-24T20:22:33.831Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:22:35.285Z] Sweep 2: Firing $everything for 366 patients...
+[2026-04-24T20:22:36.809Z] Sweep 3: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:23:10.190Z
+Sweeps fired in last 60s: 3
+Approx points burned: 25,026
+CURRENT REMAINING QUOTA: 99,925
+======================================================
+
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:24:10.191Z
+Sweeps fired in last 60s: 0
+Approx points burned: 0
+CURRENT REMAINING QUOTA: 76,387
+======================================================
+
+[2026-04-24T20:24:17.925Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:24:19.584Z] Sweep 2: Firing $everything for 366 patients...
+[2026-04-24T20:24:19.994Z] Sweep 3: Firing $everything for 366 patients...
+[2026-04-24T20:24:31.292Z] Sweep 4: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:25:10.191Z
+Sweeps fired in last 60s: 4
+Approx points burned: 33,368
+CURRENT REMAINING QUOTA: 76,387
+======================================================
+
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:26:10.191Z
+Sweeps fired in last 60s: 0
+Approx points burned: 0
+CURRENT REMAINING QUOTA: 69,087
+======================================================
+
+[2026-04-24T20:26:12.667Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:26:24.597Z] Sweep 2: Firing $everything for 366 patients...
+[2026-04-24T20:26:25.025Z] Sweep 3: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:27:10.192Z
+Sweeps fired in last 60s: 3
+Approx points burned: 25,026
+CURRENT REMAINING QUOTA: 69,087
+======================================================
+
+[2026-04-24T20:27:11.406Z] Sweep 1: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:28:10.192Z
+Sweeps fired in last 60s: 1
+Approx points burned: 8,342
+CURRENT REMAINING QUOTA: 84,016
+======================================================
+
+[2026-04-24T20:28:28.275Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:28:28.740Z] Sweep 2: Firing $everything for 366 patients...
+[2026-04-24T20:28:30.887Z] Sweep 3: Firing $everything for 366 patients...
+[2026-04-24T20:28:44.093Z] Sweep 4: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:29:10.193Z
+Sweeps fired in last 60s: 4
+Approx points burned: 33,368
+CURRENT REMAINING QUOTA: 99,423
+======================================================
+
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:30:10.193Z
+Sweeps fired in last 60s: 0
+Approx points burned: 0
+CURRENT REMAINING QUOTA: 68,994
+======================================================
+
+[2026-04-24T20:30:43.115Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:30:43.910Z] Sweep 2: Firing $everything for 366 patients...
+[2026-04-24T20:30:45.225Z] Sweep 3: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:31:10.194Z
+Sweeps fired in last 60s: 3
+Approx points burned: 25,026
+CURRENT REMAINING QUOTA: 68,994
+======================================================
+
+[2026-04-24T20:31:42.655Z] Sweep 1: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:32:10.194Z
+Sweeps fired in last 60s: 1
+Approx points burned: 8,342
+CURRENT REMAINING QUOTA: 99,675
+======================================================
+
+[2026-04-24T20:32:12.664Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:32:31.118Z] Sweep 2: Firing $everything for 366 patients...
+[2026-04-24T20:32:42.654Z] Sweep 3: Firing $everything for 366 patients...
+[2026-04-24T20:32:43.284Z] Sweep 4: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:33:10.196Z
+Sweeps fired in last 60s: 4
+Approx points burned: 33,368
+CURRENT REMAINING QUOTA: 83,719
+======================================================
+
+[2026-04-24T20:33:51.781Z] Sweep 1: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:34:10.207Z
+Sweeps fired in last 60s: 1
+Approx points burned: 8,342
+CURRENT REMAINING QUOTA: 99,589
+======================================================
+
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:35:10.195Z
+Sweeps fired in last 60s: 0
+Approx points burned: 0
+CURRENT REMAINING QUOTA: 99,589
+======================================================
+
+[2026-04-24T20:35:19.873Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:35:25.517Z] Sweep 2: Firing $everything for 366 patients...
+[2026-04-24T20:35:27.296Z] Sweep 3: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:36:10.196Z
+Sweeps fired in last 60s: 3
+Approx points burned: 25,026
+CURRENT REMAINING QUOTA: 99,589
+======================================================
+
+[2026-04-24T20:37:03.921Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:37:05.909Z] Sweep 2: Firing $everything for 366 patients...
+[2026-04-24T20:37:06.490Z] Sweep 3: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:37:10.196Z
+Sweeps fired in last 60s: 3
+Approx points burned: 25,026
+CURRENT REMAINING QUOTA: 99,921
+======================================================
+
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:38:10.197Z
+Sweeps fired in last 60s: 0
+Approx points burned: 0
+CURRENT REMAINING QUOTA: 99,890
+======================================================
+
+[2026-04-24T20:38:39.023Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:38:40.668Z] Sweep 2: Firing $everything for 366 patients...
+[2026-04-24T20:38:41.443Z] Sweep 3: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:39:10.197Z
+Sweeps fired in last 60s: 3
+Approx points burned: 25,026
+CURRENT REMAINING QUOTA: 99,890
+======================================================
+
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:40:10.199Z
+Sweeps fired in last 60s: 0
+Approx points burned: 0
+CURRENT REMAINING QUOTA: 76,366
+======================================================
+
+[2026-04-24T20:40:13.775Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:40:15.242Z] Sweep 2: Firing $everything for 366 patients...
+[2026-04-24T20:40:16.829Z] Sweep 3: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:41:10.199Z
+Sweeps fired in last 60s: 3
+Approx points burned: 25,026
+CURRENT REMAINING QUOTA: 76,366
+======================================================
+
+[2026-04-24T20:41:48.998Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:41:50.904Z] Sweep 2: Firing $everything for 366 patients...
+[2026-04-24T20:41:53.373Z] Sweep 3: Firing $everything for 366 patients...
+[2026-04-24T20:41:55.842Z] Sweep 4: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:42:10.200Z
+Sweeps fired in last 60s: 4
+Approx points burned: 33,368
+CURRENT REMAINING QUOTA: 90,034
+======================================================
+
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:43:10.200Z
+Sweeps fired in last 60s: 0
+Approx points burned: 0
+CURRENT REMAINING QUOTA: 99,793
+======================================================
+
+[2026-04-24T20:43:12.387Z] Sweep 1: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:44:10.200Z
+Sweeps fired in last 60s: 1
+Approx points burned: 8,342
+CURRENT REMAINING QUOTA: 99,793
+======================================================
+
+[2026-04-24T20:44:32.324Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:44:35.653Z] Sweep 2: Firing $everything for 366 patients...
+[2026-04-24T20:44:36.256Z] Sweep 3: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:45:10.200Z
+Sweeps fired in last 60s: 3
+Approx points burned: 25,026
+CURRENT REMAINING QUOTA: 99,236
+======================================================
+
+[2026-04-24T20:45:31.539Z] Sweep 1: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:46:10.200Z
+Sweeps fired in last 60s: 1
+Approx points burned: 8,342
+CURRENT REMAINING QUOTA: 76,427
+======================================================
+
+[2026-04-24T20:46:13.806Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:46:31.492Z] Sweep 2: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:47:10.201Z
+Sweeps fired in last 60s: 2
+Approx points burned: 16,684
+CURRENT REMAINING QUOTA: 99,951
+======================================================
+
+[2026-04-24T20:47:59.720Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:48:00.193Z] Sweep 2: Firing $everything for 366 patients...
+[2026-04-24T20:48:02.255Z] Sweep 3: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:48:10.203Z
+Sweeps fired in last 60s: 3
+Approx points burned: 25,026
+CURRENT REMAINING QUOTA: 99,873
+======================================================
+
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:49:10.202Z
+Sweeps fired in last 60s: 0
+Approx points burned: 0
+CURRENT REMAINING QUOTA: 99,978
+======================================================
+
+[2026-04-24T20:49:44.349Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:49:46.911Z] Sweep 2: Firing $everything for 366 patients...
+[2026-04-24T20:49:47.527Z] Sweep 3: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:50:10.203Z
+Sweeps fired in last 60s: 3
+Approx points burned: 25,026
+CURRENT REMAINING QUOTA: 99,978
+======================================================
+
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:51:10.203Z
+Sweeps fired in last 60s: 0
+Approx points burned: 0
+CURRENT REMAINING QUOTA: 99,905
+======================================================
+
+[2026-04-24T20:51:28.358Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:51:28.949Z] Sweep 2: Firing $everything for 366 patients...
+[2026-04-24T20:51:30.313Z] Sweep 3: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:52:10.203Z
+Sweeps fired in last 60s: 3
+Approx points burned: 25,026
+CURRENT REMAINING QUOTA: 99,905
+======================================================
+
+[2026-04-24T20:53:09.007Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:53:09.993Z] Sweep 2: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:53:10.388Z
+Sweeps fired in last 60s: 2
+Approx points burned: 16,684
+CURRENT REMAINING QUOTA: 92,416
+======================================================
+
+[2026-04-24T20:53:11.754Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:54:07.395Z] Sweep 2: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:54:10.388Z
+Sweeps fired in last 60s: 2
+Approx points burned: 16,684
+CURRENT REMAINING QUOTA: 99,833
+======================================================
+
+[2026-04-24T20:54:49.552Z] Sweep 1: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:55:10.388Z
+Sweeps fired in last 60s: 1
+Approx points burned: 8,342
+CURRENT REMAINING QUOTA: 92,038
+======================================================
+
+[2026-04-24T20:55:25.648Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:56:00.255Z] Sweep 2: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:56:10.389Z
+Sweeps fired in last 60s: 2
+Approx points burned: 16,684
+CURRENT REMAINING QUOTA: 92,078
+======================================================
+
+[2026-04-24T20:56:29.132Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:56:31.516Z] Sweep 2: Firing $everything for 366 patients...
+[2026-04-24T20:57:06.532Z] Sweep 3: Firing $everything for 366 patients...
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:57:10.389Z
+Sweeps fired in last 60s: 3
+Approx points burned: 25,026
+CURRENT REMAINING QUOTA: 84,460
+======================================================
+
+
+======================================================
+[MINUTE SUMMARY] - 2026-04-24T20:58:10.389Z
+Sweeps fired in last 60s: 0
+Approx points burned: 0
+CURRENT REMAINING QUOTA: 84,292
+======================================================
+
+[2026-04-24T20:58:39.106Z] Sweep 1: Firing $everything for 366 patients...
+[2026-04-24T20:58:42.234Z] Sweep 2: Firing $everything for 366 patients...
+[2026-04-24T20:58:42.644Z] Sweep 3: Firing $everything for 366 patients...

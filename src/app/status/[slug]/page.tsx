@@ -35,14 +35,27 @@ export default async function StatusPage({ params }: { params: Promise<{ slug: s
 		.order('checked_at', { ascending: false })
 		.limit(100);
 
+
 	const statusMap: Record<string, any> = {};
+	const uptimeStats: Record<string, { total: number, up: number }> = {};
 	if (latestStatuses) {
 		latestStatuses.forEach(st => {
 			if (!statusMap[st.service_id]) {
 				statusMap[st.service_id] = st;
 			}
+			if (!uptimeStats[st.service_id]) {
+				uptimeStats[st.service_id] = { total: 0, up: 0 };
+			}
+			uptimeStats[st.service_id].total++;
+			if (st.status === 'operational' || st.status === 'degraded') {
+				uptimeStats[st.service_id].up++;
+			}
 		});
 	}
+
+	let projectTotal = 0;
+	let projectUp = 0;
+
 
 	let anyDown = false;
 	let allOperational = true;
@@ -70,6 +83,10 @@ export default async function StatusPage({ params }: { params: Promise<{ slug: s
 			avgLatency += latency;
 			latencyCount++;
 		}
+		if (uptimeStats[s.id]) {
+			projectTotal += uptimeStats[s.id].total;
+			projectUp += uptimeStats[s.id].up;
+		}
 
 		return {
 			...s,
@@ -79,6 +96,12 @@ export default async function StatusPage({ params }: { params: Promise<{ slug: s
 	}) || [];
 
 	avgLatency = latencyCount > 0 ? Math.round(avgLatency / latencyCount) : 0;
+
+	let uptimeStr = "100%";
+	if (projectTotal > 0) {
+		const uptimePct = (projectUp / projectTotal) * 100;
+		uptimeStr = uptimePct === 100 ? "100%" : `${uptimePct.toFixed(2)}%`;
+	}
 
 	const globalStatus = anyDown ? 'down' : (allOperational ? 'operational' : 'degraded');
 
@@ -142,7 +165,7 @@ export default async function StatusPage({ params }: { params: Promise<{ slug: s
 					<div className="mono-accent text-muted-text mb-4 flex items-center gap-2 text-xs uppercase tracking-wider">
 						<Clock size={14} /> 30-Day Uptime
 					</div>
-					<div className="text-3xl font-semibold text-[#22C55E]">100%</div>
+					<div className={`text-3xl font-semibold ${uptimeStr === '100%' ? 'text-[#22C55E]' : parseFloat(uptimeStr) >= 99 ? 'text-[#F59E0B]' : 'text-[#EF4444]'}`}>{uptimeStr}</div>
 					<div className="text-xs text-muted-text mt-3 font-mono">
 						Target SLA Met
 					</div>
@@ -179,7 +202,7 @@ export default async function StatusPage({ params }: { params: Promise<{ slug: s
 									<span className="text-off-white font-medium">{s.name}</span>
 								</div>
 								<div className="text-sm text-muted-text flex items-center gap-2">
-									<span className="font-mono text-[10px] px-2 py-0.5 bg-white/5 rounded text-white/50 uppercase">{s.region || 'Global'}</span>
+									<span className="font-mono text-[10px] px-2 py-0.5 bg-white/5 rounded text-white/50 uppercase">'GLOBAL (20 ZONES)'</span>
 								</div>
 							</div>
 							
