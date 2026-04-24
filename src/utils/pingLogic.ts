@@ -5,7 +5,7 @@ export async function executePing(executionRegion: string) {
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   
   if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Missing Supabase credentials (SUPABASE_SERVICE_ROLE_KEY is required)');
+    throw new Error('Missing Supabase credentials');
   }
 
   const supabase = createClient(supabaseUrl, supabaseKey);
@@ -24,27 +24,45 @@ export async function executePing(executionRegion: string) {
       let isUp = false;
       let statusCode = 0;
       let latencyMs = 0;
+      let ttfbMs = 0;
+      
+      // Determine method (some might need GET to trace full payload, defaults to HEAD for bandwidth)
+      // If service.type is 'api_full', we could use GET, otherwise HEAD. 
+      // For now we'll do GET if explicitly asked, else HEAD. We assume HEAD for standard pings.
+      const method = service.meta?.method || 'HEAD';
       
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
         
+        // Measure TTFB manually using the Response object's first byte arrival
         const response = await fetch(service.endpoint, {
-          method: 'HEAD',
+          method: method,
           headers: { 
-            "User-Agent": "Vestcodes-Vercel-Edge-Cron/3.0",
+            "User-Agent": "Vestcodes-Vercel-Edge-Cron/4.0",
             "Cache-Control": "no-cache, no-store, must-revalidate"
           },
           signal: controller.signal
         });
         
+        // At this point headers have arrived = TTFB
+        ttfbMs = Date.now() - start;
+        
+        // Actually consume the body if it's a GET, otherwise just wait for finish
+        if (method === 'GET') {
+           await response.text(); 
+        } else {
+           await response.blob(); 
+        }
+
         clearTimeout(timeoutId);
         statusCode = response.status;
         isUp = response.ok;
-        latencyMs = Date.now() - start;
+        latencyMs = Date.now() - start; // Total Request Time
       } catch (error) {
         isUp = false;
         latencyMs = Date.now() - start;
+        ttfbMs = latencyMs; // Approximate if failed before headers
       }
 
       let statusStr = 'operational';
@@ -55,7 +73,13 @@ export async function executePing(executionRegion: string) {
         service_id: service.id,
         status: statusStr,
         response_time: latencyMs,
-        meta: { statusCode, timestamp: new Date().toISOString(), region: executionRegion }
+        meta: { 
+          statusCode, 
+          timestamp: new Date().toISOString(), 
+          region: executionRegion,
+          ttfb: ttfbMs,
+          method
+        }
       };
     })
   );

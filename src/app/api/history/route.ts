@@ -8,6 +8,7 @@ const VERCEL_REGIONS: Record<string, { label: string, zone: string }> = {
   'cle1': { label: 'Cleveland, USA (cle1)', zone: 'na' },
   'cpt1': { label: 'Cape Town, South Africa (cpt1)', zone: 'af' },
   'dub1': { label: 'Dublin, Ireland (dub1)', zone: 'eu' },
+  'dxb1': { label: 'Dubai, UAE (dxb1)', zone: 'me' },
   'fra1': { label: 'Frankfurt, Germany (fra1)', zone: 'eu' },
   'gru1': { label: 'São Paulo, Brazil (gru1)', zone: 'sa' },
   'hkg1': { label: 'Hong Kong (hkg1)', zone: 'ap' },
@@ -20,6 +21,7 @@ const VERCEL_REGIONS: Record<string, { label: string, zone: string }> = {
   'sfo1': { label: 'San Francisco, USA (sfo1)', zone: 'na' },
   'sin1': { label: 'Singapore (sin1)', zone: 'ap' },
   'syd1': { label: 'Sydney, Australia (syd1)', zone: 'ap' },
+  'yul1': { label: 'Montréal, Canada (yul1)', zone: 'na' },
   'global': { label: 'Global Edge Network', zone: 'global' }
 };
 
@@ -29,6 +31,7 @@ const ZONES: Record<string, string> = {
   'ap': 'Asia Pacific',
   'sa': 'South America',
   'af': 'Africa',
+  'me': 'Middle East',
   'global': 'Global Edge Network'
 };
 
@@ -68,10 +71,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // regionMap hierarchy: Zone -> Region -> HourlyMap
   const zoneMap: Record<string, Record<string, any>> = {};
 
-  // Initialize Global Zone explicitly
   zoneMap['global'] = {
     'global': {
       id: 'global',
@@ -80,8 +81,7 @@ export async function GET(request: Request) {
     }
   };
 
-  // Ensure all configured zones/regions exist even if empty
-  const expectedRegions = ['iad1', 'sfo1', 'fra1', 'dub1', 'bom1', 'hnd1', 'syd1', 'gru1'];
+  const expectedRegions = Object.keys(VERCEL_REGIONS).filter(k => k !== 'global');
   expectedRegions.forEach(r => {
     const meta = VERCEL_REGIONS[r];
     if (meta) {
@@ -91,7 +91,6 @@ export async function GET(request: Request) {
         name: meta.label,
         hourlyMap: {}
       };
-      // Also ensure a Zone-level aggregate region exists
       if (!zoneMap[meta.zone]['aggregate']) {
         zoneMap[meta.zone]['aggregate'] = {
           id: `zone_${meta.zone}`,
@@ -110,7 +109,6 @@ export async function GET(request: Request) {
       const regionMeta = VERCEL_REGIONS[r];
       const zoneId = regionMeta ? regionMeta.zone : 'global';
       
-      // Init missing
       if (!zoneMap[zoneId]) zoneMap[zoneId] = {};
       
       if (!zoneMap[zoneId][r] && r !== 'global') {
@@ -138,12 +136,16 @@ export async function GET(request: Request) {
         if (!bucket.hourlyMap[key]) {
           bucket.hourlyMap[key] = {
             count: 0, downCount: 0, degradedCount: 0,
-            totalLatency: 0, firstDegradedAt: null, firstDownAt: null
+            totalLatency: 0, 
+            latencies: [], // Array to compute p50/p95/etc later
+            firstDegradedAt: null, firstDownAt: null
           };
         }
         const b = bucket.hourlyMap[key];
         b.count++;
         b.totalLatency += st.response_time;
+        if (st.response_time > 0) b.latencies.push(st.response_time);
+
         if (st.status === 'down') {
           b.downCount++;
           if (!b.firstDownAt || dateObj < b.firstDownAt) b.firstDownAt = dateObj;
@@ -153,16 +155,19 @@ export async function GET(request: Request) {
         }
       };
 
-      // 1. Update Specific Region
       if (r !== 'global') updateBucket(zoneMap[zoneId][r]);
-      
-      // 2. Update Zone Aggregate
       if (r !== 'global') updateBucket(zoneMap[zoneId]['aggregate']);
-      
-      // 3. Update Global Aggregate
       updateBucket(zoneMap['global']['global']);
     });
   }
+
+  // Calculate percentiles helper
+  const calculatePercentile = (arr: number[], p: number) => {
+    if (arr.length === 0) return 0;
+    const sorted = [...arr].sort((a, b) => a - b);
+    const index = Math.ceil((p / 100) * sorted.length) - 1;
+    return sorted[index];
+  };
 
   const buildDailyData = (hMap: any) => {
     const dailyData = [];
@@ -178,7 +183,7 @@ export async function GET(request: Request) {
         const agg = hMap[key];
         
         if (!agg) {
-          hours.push({ hour: h, uptime: 100, status: "operational", latency: 0, incidentCount: 0, noData: true });
+          hours.push({ hour: h, uptime: 100, status: "operational", latency: 0, p50: 0, p90: 0, p95: 0, p99: 0, incidentCount: 0, noData: true });
         } else {
           let status = "operational";
           let eventTime = null;
@@ -199,6 +204,10 @@ export async function GET(request: Request) {
             uptime,
             status,
             latency: Math.round(agg.totalLatency / agg.count),
+            p50: calculatePercentile(agg.latencies, 50),
+            p90: calculatePercentile(agg.latencies, 90),
+            p95: calculatePercentile(agg.latencies, 95),
+            p99: calculatePercentile(agg.latencies, 99),
             incidentCount: agg.downCount,
             eventTime
           });
@@ -219,7 +228,6 @@ export async function GET(request: Request) {
       };
     });
 
-    // Sort so Aggregate is first, then alphabetical by region name
     regionsInZone.sort((a, b) => {
       if (a.isAggregate) return -1;
       if (b.isAggregate) return 1;
@@ -233,8 +241,7 @@ export async function GET(request: Request) {
     };
   });
 
-  // Sort zones so Global is first, then NA, EU, etc.
-  const zoneOrder = ['global', 'na', 'eu', 'ap', 'sa', 'af'];
+  const zoneOrder = ['global', 'na', 'eu', 'ap', 'sa', 'af', 'me'];
   formattedZones.sort((a, b) => {
     let aIdx = zoneOrder.indexOf(a.id);
     let bIdx = zoneOrder.indexOf(b.id);
