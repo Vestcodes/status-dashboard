@@ -5,6 +5,7 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    const executionRegion = Deno.env.get('DENO_REGION') || 'global'
     
     if (!supabaseUrl || !supabaseKey) {
       return new Response("Missing env vars", { status: 500 })
@@ -59,7 +60,7 @@ serve(async (req) => {
           service_id: service.id,
           status: statusStr,
           response_time: latencyMs,
-          meta: { statusCode, timestamp: new Date().toISOString() }
+          meta: { statusCode, timestamp: new Date().toISOString(), region: executionRegion }
         }
       })
     )
@@ -72,7 +73,7 @@ serve(async (req) => {
     if (insertError) throw insertError
 
     return new Response(
-      JSON.stringify({ success: true, count: results.length }),
+      JSON.stringify({ success: true, count: results.length, region: executionRegion }),
       { headers: { 'Content-Type': 'application/json' } },
     )
   } catch (error) {
