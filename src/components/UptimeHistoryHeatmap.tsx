@@ -9,6 +9,7 @@ interface HourlyMetric {
   latency: number; // ms
   incidentCount: number;
   noData?: boolean;
+  eventTime?: string;
 }
 
 interface DailyMetric {
@@ -72,7 +73,7 @@ export function UptimeHistoryHeatmap({ projectId, services }: { projectId: strin
   if (loading) {
     return (
       <div className="w-full bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 flex justify-center items-center h-64 shadow-sm animate-pulse">
-        <span className="text-zinc-500 text-sm">Loading 90-day history...</span>
+        <span className="text-zinc-500 text-sm">Loading 7-day history...</span>
       </div>
     );
   }
@@ -80,7 +81,7 @@ export function UptimeHistoryHeatmap({ projectId, services }: { projectId: strin
   if (!regions || regions.length === 0 || !selectedRegion) {
     return (
       <div className="w-full bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">90-Day Uptime History</h3>
+        <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">7-Day Uptime History</h3>
         <p className="text-sm text-zinc-500 dark:text-zinc-400">Not enough data to render the history.</p>
       </div>
     );
@@ -90,7 +91,7 @@ export function UptimeHistoryHeatmap({ projectId, services }: { projectId: strin
     <div className="w-full bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">90-Day Uptime History</h3>
+          <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">7-Day Uptime History</h3>
           <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Hourly granularity across regions</p>
         </div>
         
@@ -121,18 +122,18 @@ export function UptimeHistoryHeatmap({ projectId, services }: { projectId: strin
           </div>
 
           {/* Data rows */}
-          <div className="flex flex-col gap-1.5 h-[500px] overflow-y-auto custom-scrollbar pr-2">
+          <div className="flex flex-col gap-2">
             {selectedRegion.data.map((day) => (
               <div key={day.dateStr} className="flex items-center group relative">
-                <div className="w-24 text-[10px] font-medium text-zinc-500 dark:text-zinc-400 select-none shrink-0">
+                <div className="w-24 text-[11px] font-medium text-zinc-500 dark:text-zinc-400 select-none shrink-0">
                   {day.dateStr}
                 </div>
                 
-                <div className="flex flex-1 gap-[2px] relative">
+                <div className="flex flex-1 gap-1 relative">
                   {day.hours.map((hour) => (
                     <div 
                       key={`${day.dateStr}-${hour.hour}`}
-                      className={`flex-1 h-[14px] rounded-[2px] cursor-pointer transition-all duration-200 hover:scale-125 hover:z-10 ${getStatusColor(hour.status, hour.noData)} ${!hour.noData ? 'opacity-80 hover:opacity-100' : ''}`}
+                      className={`flex-1 h-8 rounded-sm cursor-pointer transition-all duration-200 hover:scale-[1.15] hover:z-10 ${getStatusColor(hour.status, hour.noData)} ${!hour.noData ? 'opacity-80 hover:opacity-100' : ''}`}
                       onMouseEnter={() => setHoveredTile({ date: day.dateStr, metric: hour })}
                       onMouseLeave={() => setHoveredTile(null)}
                     />
@@ -145,7 +146,7 @@ export function UptimeHistoryHeatmap({ projectId, services }: { projectId: strin
       </div>
 
       {/* Legend & Tooltip Overlay Area */}
-      <div className="mt-6 flex flex-col sm:flex-row justify-between items-start sm:items-center border-t border-zinc-100 dark:border-zinc-800 pt-4 gap-4">
+      <div className="mt-8 flex flex-col sm:flex-row justify-between items-start sm:items-center border-t border-zinc-100 dark:border-zinc-800 pt-4 gap-4">
         <div className="flex items-center gap-4 text-xs text-zinc-500 dark:text-zinc-400">
           <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-green-500 opacity-80" /> Operational</div>
           <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-yellow-500 opacity-80" /> Degraded</div>
@@ -154,7 +155,7 @@ export function UptimeHistoryHeatmap({ projectId, services }: { projectId: strin
         </div>
 
         {/* Dynamic info based on hover */}
-        <div className="h-8 flex items-center justify-end text-sm">
+        <div className="h-10 flex items-center justify-end text-sm">
           {hoveredTile ? (
             <div className="flex items-center gap-3 text-zinc-700 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-800 px-3 py-1.5 rounded-md border border-zinc-200 dark:border-zinc-700 shadow-sm transition-all">
               <span className="font-medium text-xs">{hoveredTile.date}</span>
@@ -164,13 +165,23 @@ export function UptimeHistoryHeatmap({ projectId, services }: { projectId: strin
               {hoveredTile.metric.noData ? (
                 <span className="text-zinc-400 italic text-xs">No metrics collected</span>
               ) : (
-                <>
+                <div className="flex items-center gap-3">
                   <span className={`font-semibold text-xs ${hoveredTile.metric.status === 'operational' ? 'text-green-500' : hoveredTile.metric.status === 'degraded' ? 'text-yellow-500' : 'text-red-500'}`}>
-                    {hoveredTile.metric.uptime.toFixed(1)}% UPTIME
+                    {hoveredTile.metric.status.toUpperCase()}
                   </span>
+                  
+                  {(hoveredTile.metric.status === 'degraded' || hoveredTile.metric.status === 'down') && hoveredTile.metric.eventTime && (
+                    <>
+                      <span className="text-zinc-400">|</span>
+                      <span className="text-xs text-zinc-500">
+                        Triggered at: {new Date(hoveredTile.metric.eventTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                      </span>
+                    </>
+                  )}
+                  
                   <span className="text-zinc-400">|</span>
                   <span className="font-mono text-xs">{hoveredTile.metric.latency}ms avg</span>
-                </>
+                </div>
               )}
             </div>
           ) : (

@@ -23,14 +23,15 @@ export async function GET(request: Request) {
 
   const serviceIds = services.map(s => s.id);
 
-  const ninetyDaysAgo = new Date();
-  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+  // We are now fetching 7 days instead of 90 days.
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
   const { data: statuses, error } = await supabase
     .from('statuses')
     .select('service_id, status, response_time, checked_at')
     .in('service_id', serviceIds)
-    .gte('checked_at', ninetyDaysAgo.toISOString())
+    .gte('checked_at', sevenDaysAgo.toISOString())
     .order('checked_at', { ascending: false })
     .limit(50000);
 
@@ -69,15 +70,23 @@ export async function GET(request: Request) {
           count: 0,
           downCount: 0,
           degradedCount: 0,
-          totalLatency: 0
+          totalLatency: 0,
+          firstDegradedAt: null,
+          firstDownAt: null
         };
       }
 
       const h = regionMap[r].hourlyMap[key];
       h.count++;
       h.totalLatency += st.response_time;
-      if (st.status === 'down') h.downCount++;
-      else if (st.status === 'degraded') h.degradedCount++;
+      if (st.status === 'down') {
+        h.downCount++;
+        if (!h.firstDownAt || dateObj < h.firstDownAt) h.firstDownAt = dateObj;
+      }
+      else if (st.status === 'degraded') {
+        h.degradedCount++;
+        if (!h.firstDegradedAt || dateObj < h.firstDegradedAt) h.firstDegradedAt = dateObj;
+      }
     });
   }
 
@@ -86,7 +95,8 @@ export async function GET(request: Request) {
     const dailyData = [];
     
     const today = new Date();
-    for (let i = 89; i >= 0; i--) {
+    // Loop only 7 days
+    for (let i = 6; i >= 0; i--) {
       const date = new Date(today);
       date.setDate(date.getDate() - i);
       const dayStr = `${String(date.getDate()).padStart(2, '0')}.${String(date.getMonth() + 1).padStart(2, '0')}.${date.getFullYear()}`;
@@ -106,9 +116,17 @@ export async function GET(request: Request) {
             noData: true
           });
         } else {
+          // If a SINGLE check was degraded/down in that hour, the WHOLE hour is marked as such.
           let status = "operational";
-          if (agg.downCount > 0) status = "down";
-          else if (agg.degradedCount > agg.count / 2) status = "degraded";
+          let eventTime = null;
+
+          if (agg.downCount > 0) {
+            status = "down";
+            eventTime = agg.firstDownAt.toISOString();
+          } else if (agg.degradedCount > 0) {
+            status = "degraded";
+            eventTime = agg.firstDegradedAt.toISOString();
+          }
           
           let uptime = 100;
           if (agg.downCount > 0) {
@@ -122,7 +140,8 @@ export async function GET(request: Request) {
             uptime: uptime,
             status,
             latency: Math.round(agg.totalLatency / agg.count),
-            incidentCount: agg.downCount
+            incidentCount: agg.downCount,
+            eventTime
           });
         }
       }
