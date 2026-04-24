@@ -101,10 +101,11 @@ export async function GET(request: Request) {
     }
   });
 
-  if (statuses) {
+  if (statuses && statuses.length > 0) {
     statuses.forEach(st => {
       const metaObj = st.meta as any;
-      const r = (metaObj && metaObj.region) ? metaObj.region : 'global';
+      // If the edge functions haven't fired yet or meta is empty, default to iad1 so it doesn't get lost in "global" abyss
+      const r = (metaObj && metaObj.region) ? metaObj.region : 'iad1';
       
       const regionMeta = VERCEL_REGIONS[r];
       const zoneId = regionMeta ? regionMeta.zone : 'global';
@@ -137,7 +138,7 @@ export async function GET(request: Request) {
           bucket.hourlyMap[key] = {
             count: 0, downCount: 0, degradedCount: 0,
             totalLatency: 0, 
-            latencies: [], // Array to compute p50/p95/etc later
+            latencies: [], 
             firstDegradedAt: null, firstDownAt: null
           };
         }
@@ -182,7 +183,7 @@ export async function GET(request: Request) {
         const key = `${dayStr}-${h}`;
         const agg = hMap[key];
         
-        if (!agg) {
+        if (!agg || agg.count === 0) {
           hours.push({ hour: h, uptime: 100, status: "operational", latency: 0, p50: 0, p90: 0, p95: 0, p99: 0, incidentCount: 0, noData: true });
         } else {
           let status = "operational";
@@ -220,10 +221,13 @@ export async function GET(request: Request) {
 
   const formattedZones = Object.keys(zoneMap).map(zoneKey => {
     const regionsInZone = Object.keys(zoneMap[zoneKey]).map(rKey => {
+      // Only return regions that have actual data OR are aggregate/global (to keep structure clean)
+      const data = buildDailyData(zoneMap[zoneKey][rKey].hourlyMap);
+      
       return {
         id: zoneMap[zoneKey][rKey].id,
         name: zoneMap[zoneKey][rKey].name,
-        data: buildDailyData(zoneMap[zoneKey][rKey].hourlyMap),
+        data: data,
         isAggregate: rKey === 'aggregate' || rKey === 'global'
       };
     });
