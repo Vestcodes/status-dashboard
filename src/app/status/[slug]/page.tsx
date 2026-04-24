@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server'
 import { Activity, ArrowLeft, Clock, ShieldCheck, Globe2, Server, AlertTriangle, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { UptimeHistoryHeatmap } from "@/components/UptimeHistoryHeatmap";
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -178,7 +179,7 @@ export default async function StatusPage({ params }: { params: Promise<{ slug: s
 									<span className="text-off-white font-medium">{s.name}</span>
 								</div>
 								<div className="text-sm text-muted-text flex items-center gap-2">
-									<span className="font-mono text-[10px] px-2 py-0.5 bg-white/5 rounded text-white/50 uppercase">{s.region}</span>
+									<span className="font-mono text-[10px] px-2 py-0.5 bg-white/5 rounded text-white/50 uppercase">{s.region || 'Global'}</span>
 								</div>
 							</div>
 							
@@ -202,28 +203,7 @@ export default async function StatusPage({ params }: { params: Promise<{ slug: s
 			</section>
 
 			<section className="space-y-6 pt-6">
-				<h2 className="text-xl font-medium tracking-wide flex items-center gap-3 text-off-white/80 pb-4 border-b border-white/10">
-					Uptime History (Last 90 Days)
-				</h2>
-				<div className="glass-panel p-6 overflow-hidden">
-					<div className="flex gap-1 overflow-x-auto pb-2 custom-scrollbar">
-						{Array.from({ length: 90 }).map((_, i) => {
-							const key = `day-${i}`;
-							const isDown = Math.random() > 0.98;
-							return (
-								<div
-									key={key}
-									className={`w-3 md:w-4 h-12 rounded-[2px] shrink-0 transition-opacity hover:opacity-80 ${isDown ? 'bg-[#F59E0B]' : 'bg-[#22C55E]/80'}`}
-									title={isDown ? "Degraded performance" : "100% Operational"}
-								/>
-							);
-						})}
-					</div>
-					<div className="flex justify-between mt-3 text-[10px] font-mono text-muted-text uppercase tracking-wider">
-						<span>90 days ago</span>
-						<span>Today</span>
-					</div>
-				</div>
+				<UptimeHistoryHeatmap services={mappedServices} projectId={project.id} />
 			</section>
 		</div>
 	);

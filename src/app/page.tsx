@@ -1,7 +1,6 @@
 import { createClient } from '@/utils/supabase/server'
 import { Activity, AlertTriangle, CheckCircle2, Clock, Server, Globe2, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { UptimeHistoryHeatmap } from "@/components/UptimeHistoryHeatmap";
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -184,8 +183,6 @@ export default async function Home() {
 						Incident History
 					</h2>
 				</div>
-				<UptimeHistoryHeatmap />
-
 				<div className="glass-panel p-8 flex flex-col items-center justify-center text-center space-y-3 hover:bg-white/[0.02] transition-colors">
 					<div className="w-12 h-12 rounded-full bg-[#22C55E]/10 flex items-center justify-center mb-2">
 						<CheckCircle2 size={24} className="text-[#22C55E] opacity-80" />
