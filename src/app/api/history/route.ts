@@ -214,7 +214,7 @@ export async function GET(request: Request) {
           });
         }
       }
-      dailyData.push({ date, dateStr, hours });
+      dailyData.push({ date, dateStr: dayStr, hours });
     }
     return dailyData;
   };
