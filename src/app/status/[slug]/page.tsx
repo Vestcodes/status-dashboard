@@ -6,8 +6,8 @@ import { notFound } from "next/navigation";
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export default async function StatusPage({ params }: { params: { slug: string } }) {
-	const slug = params.slug;
+export default async function StatusPage({ params }: { params: Promise<{ slug: string }> }) {
+	const { slug } = await params;
 	const supabase = await createClient();
 
 	const { data: projects, error } = await supabase
@@ -21,12 +21,8 @@ export default async function StatusPage({ params }: { params: { slug: string } 
 	const project = projects && projects.length > 0 ? projects[0] : null;
 
 	if (!project) {
-		return (
-			<div className="p-10">
-				<h1>Error Debug</h1>
-				<pre>{JSON.stringify({ slug, projects, error }, null, 2)}</pre>
-			</div>
-		)
+		console.error(`Project not found for slug: ${slug}`, error);
+		notFound();
 	}
 
 	const serviceIds = project.services?.map((s: any) => s.id) || [];

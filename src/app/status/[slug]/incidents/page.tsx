@@ -6,8 +6,8 @@ import { notFound } from "next/navigation";
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export default async function IncidentsPage({ params }: { params: { slug: string } }) {
-	const slug = params.slug;
+export default async function IncidentsPage({ params }: { params: Promise<{ slug: string }> }) {
+	const { slug } = await params;
 	const supabase = await createClient();
 
 	const { data: project } = await supabase
