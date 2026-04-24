@@ -4,9 +4,9 @@ import React, { useState, useEffect, useMemo } from "react";
 
 interface HourlyMetric {
   hour: number;
-  uptime: number; // percentage (0-100)
+  uptime: number;
   status: "operational" | "degraded" | "down" | "maintenance";
-  latency: number; // ms
+  latency: number;
   incidentCount: number;
   noData?: boolean;
   eventTime?: string;
@@ -14,14 +14,21 @@ interface HourlyMetric {
 
 interface DailyMetric {
   date: Date | string;
-  dateStr: string; // DD.MM.YYYY
+  dateStr: string;
   hours: HourlyMetric[];
 }
 
 interface RegionData {
   id: string;
   name: string;
+  isAggregate: boolean;
   data: DailyMetric[];
+}
+
+interface ZoneData {
+  id: string;
+  name: string;
+  regions: RegionData[];
 }
 
 const getStatusColor = (status: HourlyMetric["status"], noData?: boolean) => {
@@ -34,10 +41,11 @@ const getStatusColor = (status: HourlyMetric["status"], noData?: boolean) => {
     default: return "bg-gray-200 dark:bg-gray-800";
   }
 };
-
 export function UptimeHistoryHeatmap({ projectId, services }: { projectId: string, services: any[] }) {
-  const [regions, setRegions] = useState<RegionData[]>([]);
+  const [zones, setZones] = useState<ZoneData[]>([]);
+  const [selectedZoneId, setSelectedZoneId] = useState<string>("");
   const [selectedRegionId, setSelectedRegionId] = useState<string>("");
+  
   const [hoveredTile, setHoveredTile] = useState<{ date: string; metric: HourlyMetric } | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -48,11 +56,12 @@ export function UptimeHistoryHeatmap({ projectId, services }: { projectId: strin
         const res = await fetch(`/api/history?projectId=${projectId}`);
         const json = await res.json();
         
-        if (json.regions && json.regions.length > 0) {
-          setRegions(json.regions);
-          setSelectedRegionId(json.regions[0].id);
+        if (json.zones && json.zones.length > 0) {
+          setZones(json.zones);
+          setSelectedZoneId(json.zones[0].id);
+          setSelectedRegionId(json.zones[0].regions[0].id);
         } else {
-          setRegions([]);
+          setZones([]);
         }
       } catch (err) {
         console.error("Failed to fetch uptime history:", err);
@@ -60,59 +69,78 @@ export function UptimeHistoryHeatmap({ projectId, services }: { projectId: strin
         setLoading(false);
       }
     }
-    
-    if (projectId) {
-      fetchHistory();
-    }
+    if (projectId) fetchHistory();
   }, [projectId]);
 
-  const selectedRegion = useMemo(() => 
-    regions.find(r => r.id === selectedRegionId) || regions[0]
-  , [selectedRegionId, regions]);
+  const handleZoneChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newZoneId = e.target.value;
+    setSelectedZoneId(newZoneId);
+    const targetZone = zones.find(z => z.id === newZoneId);
+    if (targetZone && targetZone.regions.length > 0) {
+      setSelectedRegionId(targetZone.regions[0].id);
+    }
+  };
+
+  const handleRegionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedRegionId(e.target.value);
+  };
+
+  const selectedZone = useMemo(() => zones.find(z => z.id === selectedZoneId), [selectedZoneId, zones]);
+  const selectedRegion = useMemo(() => selectedZone?.regions.find(r => r.id === selectedRegionId), [selectedZone, selectedRegionId]);
 
   if (loading) {
     return (
       <div className="w-full bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-4 sm:p-6 flex justify-center items-center h-48 sm:h-64 shadow-sm animate-pulse">
-        <span className="text-zinc-500 text-sm">Loading 7-day history...</span>
+        <span className="text-zinc-500 text-sm">Loading telemetry...</span>
       </div>
     );
   }
 
-  if (!regions || regions.length === 0 || !selectedRegion) {
+  if (!zones || zones.length === 0 || !selectedRegion) {
     return (
       <div className="w-full bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-4 sm:p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">7-Day Uptime History</h3>
+        <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Edge Telemetry & Uptime</h3>
         <p className="text-sm text-zinc-500 dark:text-zinc-400">Not enough data to render the history.</p>
       </div>
     );
   }
-
   return (
     <div className="w-full bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-4 sm:p-6 shadow-sm">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-3 sm:gap-0">
+      <div className="flex flex-col md:flex-row md:items-start justify-between mb-4 sm:mb-6 gap-4">
         <div>
-          <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">7-Day Uptime History</h3>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Hourly granularity across regions</p>
+          <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Edge Telemetry</h3>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">7-Day hourly granularity across Global Zones</p>
         </div>
         
-        {regions.length > 1 && (
-          <div className="w-full sm:w-auto">
+        {zones.length > 1 && (
+          <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
             <select 
-              value={selectedRegionId}
-              onChange={(e) => setSelectedRegionId(e.target.value)}
-              className="w-full sm:w-auto bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none"
+              value={selectedZoneId}
+              onChange={handleZoneChange}
+              className="w-full sm:w-auto bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none font-medium"
             >
-              {regions.map(region => (
-                <option key={region.id} value={region.id}>{region.name}</option>
+              {zones.map(zone => (
+                <option key={zone.id} value={zone.id}>{zone.name}</option>
               ))}
             </select>
+
+            {selectedZone && selectedZone.regions.length > 1 && (
+              <select 
+                value={selectedRegionId}
+                onChange={handleRegionChange}
+                className="w-full sm:w-auto bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none"
+              >
+                {selectedZone.regions.map(region => (
+                  <option key={region.id} value={region.id}>{region.name}</option>
+                ))}
+              </select>
+            )}
           </div>
         )}
       </div>
 
       <div className="w-full overflow-x-auto pb-4 custom-scrollbar">
         <div className="min-w-[600px] md:min-w-[800px]">
-          {/* Header row (Hours) */}
           <div className="flex mb-2 ml-16 sm:ml-24">
             {Array.from({ length: 24 }).map((_, i) => (
               <div key={i} className="flex-1 text-[10px] sm:text-xs text-center text-zinc-400 select-none">
@@ -121,7 +149,6 @@ export function UptimeHistoryHeatmap({ projectId, services }: { projectId: strin
             ))}
           </div>
 
-          {/* Data rows */}
           <div className="flex flex-col gap-1.5 sm:gap-2">
             {selectedRegion.data.map((day) => (
               <div key={day.dateStr} className="flex items-center group relative">
@@ -146,9 +173,7 @@ export function UptimeHistoryHeatmap({ projectId, services }: { projectId: strin
         </div>
       </div>
 
-      {/* Legend & Tooltip Overlay Area */}
       <div className="mt-6 sm:mt-8 flex flex-col xl:flex-row justify-between items-start xl:items-center border-t border-zinc-100 dark:border-zinc-800 pt-4 gap-4">
-        
         <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-[10px] sm:text-xs text-zinc-500 dark:text-zinc-400 shrink-0">
           <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-sm bg-green-500 opacity-80" /> Operational</div>
           <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-sm bg-yellow-500 opacity-80" /> Degraded</div>
@@ -156,7 +181,6 @@ export function UptimeHistoryHeatmap({ projectId, services }: { projectId: strin
           <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-sm bg-gray-100 dark:bg-zinc-800/50 border border-zinc-200/50 dark:border-zinc-800" /> No Data</div>
         </div>
 
-        {/* Dynamic info based on hover */}
         <div className="w-full xl:w-auto flex items-center justify-start xl:justify-end text-sm min-h-[40px]">
           {hoveredTile ? (
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-zinc-700 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 rounded-md border border-zinc-200 dark:border-zinc-700 shadow-sm transition-all w-full sm:w-auto">
