@@ -41,30 +41,44 @@ export async function GET(request: Request) {
 
   const regionMap: Record<string, any> = {};
 
+  // Initialize Global Average bucket
+  regionMap['global'] = {
+    id: 'global',
+    name: 'Global Edge Network (Average)',
+    services: [],
+    hourlyMap: {}
+  };
+
   services.forEach(s => {
-    const r = s.region || 'global';
+    // Treat null/empty region as 'unassigned' so it doesn't conflict with 'global' average
+    const r = s.region || 'unassigned';
+    
     if (!regionMap[r]) {
       regionMap[r] = {
         id: r,
-        name: r.toUpperCase() + ' Region',
+        name: r === 'unassigned' ? 'Unassigned Region' : r.toUpperCase() + ' Region',
         services: [],
         hourlyMap: {}
       };
     }
+    
     regionMap[r].services.push(s.id);
+    regionMap['global'].services.push(s.id); // Add to global pool
   });
 
   if (statuses) {
     statuses.forEach(st => {
       const srv = services.find(s => s.id === st.service_id);
       if (!srv) return;
-      const r = srv.region || 'global';
+      const r = srv.region || 'unassigned';
       
       const dateObj = new Date(st.checked_at);
       const dayStr = `${String(dateObj.getDate()).padStart(2, '0')}.${String(dateObj.getMonth() + 1).padStart(2, '0')}.${dateObj.getFullYear()}`;
       const hour = dateObj.getHours();
       
       const key = `${dayStr}-${hour}`;
+      
+      // Update specific region
       if (!regionMap[r].hourlyMap[key]) {
         regionMap[r].hourlyMap[key] = {
           count: 0,
@@ -75,17 +89,37 @@ export async function GET(request: Request) {
           firstDownAt: null
         };
       }
-
       const h = regionMap[r].hourlyMap[key];
       h.count++;
       h.totalLatency += st.response_time;
       if (st.status === 'down') {
         h.downCount++;
         if (!h.firstDownAt || dateObj < h.firstDownAt) h.firstDownAt = dateObj;
-      }
-      else if (st.status === 'degraded') {
+      } else if (st.status === 'degraded') {
         h.degradedCount++;
         if (!h.firstDegradedAt || dateObj < h.firstDegradedAt) h.firstDegradedAt = dateObj;
+      }
+
+      // Update Global Average
+      if (!regionMap['global'].hourlyMap[key]) {
+        regionMap['global'].hourlyMap[key] = {
+          count: 0,
+          downCount: 0,
+          degradedCount: 0,
+          totalLatency: 0,
+          firstDegradedAt: null,
+          firstDownAt: null
+        };
+      }
+      const g = regionMap['global'].hourlyMap[key];
+      g.count++;
+      g.totalLatency += st.response_time;
+      if (st.status === 'down') {
+        g.downCount++;
+        if (!g.firstDownAt || dateObj < g.firstDownAt) g.firstDownAt = dateObj;
+      } else if (st.status === 'degraded') {
+        g.degradedCount++;
+        if (!g.firstDegradedAt || dateObj < g.firstDegradedAt) g.firstDegradedAt = dateObj;
       }
     });
   }
@@ -158,6 +192,13 @@ export async function GET(request: Request) {
       name: regionMap[r].name,
       data: dailyData
     };
+  });
+
+  // Sort so Global is always first
+  resultRegions.sort((a, b) => {
+    if (a.id === 'global') return -1;
+    if (b.id === 'global') return 1;
+    return a.name.localeCompare(b.name);
   });
 
   return NextResponse.json({ regions: resultRegions });
