@@ -14,7 +14,7 @@ export async function GET(request: Request) {
   // Get all services for this project
   const { data: services } = await supabase
     .from('services')
-    .select('id, name, region')
+    .select('id, name')
     .eq('project_id', projectId);
 
   if (!services || services.length === 0) {
@@ -29,7 +29,7 @@ export async function GET(request: Request) {
 
   const { data: statuses, error } = await supabase
     .from('statuses')
-    .select('service_id, status, response_time, checked_at')
+    .select('service_id, status, response_time, checked_at, meta')
     .in('service_id', serviceIds)
     .gte('checked_at', sevenDaysAgo.toISOString())
     .order('checked_at', { ascending: false })
@@ -45,37 +45,37 @@ export async function GET(request: Request) {
   regionMap['global'] = {
     id: 'global',
     name: 'Global Edge Network (Average)',
-    services: [],
     hourlyMap: {}
   };
 
-  services.forEach(s => {
-    // Treat null/empty region as 'unassigned' so it doesn't conflict with 'global' average
-    const r = s.region || 'unassigned';
-    
-    if (!regionMap[r]) {
-      regionMap[r] = {
-        id: r,
-        name: r === 'unassigned' ? 'Unassigned Region' : r.toUpperCase() + ' Region',
-        services: [],
-        hourlyMap: {}
-      };
-    }
-    
-    regionMap[r].services.push(s.id);
-    regionMap['global'].services.push(s.id); // Add to global pool
+  // Predefine standard regions we expect to monitor from so they show up even if data is missing
+  const expectedRegions = ['us-east', 'eu-central', 'ap-south'];
+  expectedRegions.forEach(r => {
+    regionMap[r] = {
+      id: r,
+      name: r.toUpperCase() + ' Region',
+      hourlyMap: {}
+    };
   });
 
   if (statuses) {
     statuses.forEach(st => {
-      const srv = services.find(s => s.id === st.service_id);
-      if (!srv) return;
-      const r = srv.region || 'unassigned';
+      // The region the check was performed FROM should be stored in meta.region.
+      // If missing, we fallback to a default (or global).
+      const meta = st.meta as any;
+      const r = (meta && meta.region) ? meta.region : 'global';
+      
+      if (!regionMap[r] && r !== 'global') {
+        regionMap[r] = {
+          id: r,
+          name: r.toUpperCase() + ' Region',
+          hourlyMap: {}
+        };
+      }
       
       const dateObj = new Date(st.checked_at);
       const dayStr = `${String(dateObj.getDate()).padStart(2, '0')}.${String(dateObj.getMonth() + 1).padStart(2, '0')}.${dateObj.getFullYear()}`;
       const hour = dateObj.getHours();
-      
       const key = `${dayStr}-${hour}`;
       
       // Update specific region
@@ -100,7 +100,7 @@ export async function GET(request: Request) {
         if (!h.firstDegradedAt || dateObj < h.firstDegradedAt) h.firstDegradedAt = dateObj;
       }
 
-      // Update Global Average
+      // Update Global Average (Aggregates all regions)
       if (!regionMap['global'].hourlyMap[key]) {
         regionMap['global'].hourlyMap[key] = {
           count: 0,
@@ -150,7 +150,6 @@ export async function GET(request: Request) {
             noData: true
           });
         } else {
-          // If a SINGLE check was degraded/down in that hour, the WHOLE hour is marked as such.
           let status = "operational";
           let eventTime = null;
 
