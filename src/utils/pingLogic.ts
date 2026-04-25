@@ -20,49 +20,55 @@ export async function executePing(executionRegion: string) {
 
   const results = await Promise.all(
     services.map(async (service) => {
-      const start = Date.now();
       let isUp = false;
       let statusCode = 0;
       let latencyMs = 0;
       let ttfbMs = 0;
-      
-      // Determine method (some might need GET to trace full payload, defaults to HEAD for bandwidth)
-      // If service.type is 'api_full', we could use GET, otherwise HEAD. 
-      // For now we'll do GET if explicitly asked, else HEAD. We assume HEAD for standard pings.
       const method = service.meta?.method || 'HEAD';
       
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
-        
-        // Measure TTFB manually using the Response object's first byte arrival
-        const response = await fetch(service.endpoint, {
-          method: method,
-          headers: { 
-            "User-Agent": "Vestcodes-Vercel-Edge-Cron/4.0",
-            "Cache-Control": "no-cache, no-store, must-revalidate"
-          },
-          signal: controller.signal
-        });
-        
-        // At this point headers have arrived = TTFB
-        ttfbMs = Date.now() - start;
-        
-        // Actually consume the body if it's a GET, otherwise just wait for finish
-        if (method === 'GET') {
-           await response.text(); 
-        } else {
-           await response.blob(); 
-        }
+      const maxRetries = 2; // Up to 3 attempts total (1 initial + 2 retries)
+      
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        const start = Date.now();
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+          
+          const response = await fetch(service.endpoint, {
+            method: method,
+            headers: { 
+              "User-Agent": "Vestcodes-Vercel-Edge-Cron/5.0",
+              "Cache-Control": "no-cache, no-store, must-revalidate"
+            },
+            signal: controller.signal
+          });
+          
+          ttfbMs = Date.now() - start;
+          
+          if (method === 'GET') {
+             await response.text(); 
+          } else {
+             await response.blob(); 
+          }
 
-        clearTimeout(timeoutId);
-        statusCode = response.status;
-        isUp = response.ok;
-        latencyMs = Date.now() - start; // Total Request Time
-      } catch (error) {
-        isUp = false;
-        latencyMs = Date.now() - start;
-        ttfbMs = latencyMs; // Approximate if failed before headers
+          clearTimeout(timeoutId);
+          statusCode = response.status;
+          isUp = response.ok;
+          latencyMs = Date.now() - start;
+          
+          // If successful, we don't need to retry
+          if (isUp) break;
+          
+        } catch (error) {
+          isUp = false;
+          latencyMs = Date.now() - start;
+          ttfbMs = latencyMs;
+        }
+        
+        // If it's a failure (either HTTP 5xx/4xx or network throw), and we have retries left, wait and retry
+        if (!isUp && attempt < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, 1500)); // wait 1.5s before retry
+        }
       }
 
       let statusStr = 'operational';
