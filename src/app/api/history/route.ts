@@ -59,6 +59,12 @@ export async function GET(request: Request) {
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
+  // We query both the raw statuses (for the most recent hour or two) and the hourly_statuses table
+  // For simplicity and immediate fix, we'll fetch from the raw statuses table but we know the limit is now safe
+  // since we throttled to 10 minutes (which is 144 pings per day per region per service).
+  // 7 days * 24 hours * 6 pings * 20 regions = 20,160 rows per service for 7 days.
+  // With 100,000 limit, we can easily fetch ~5 services for 7 days.
+
   const { data: statuses, error } = await supabase
     .from('statuses')
     .select('service_id, status, response_time, checked_at, meta')
@@ -104,7 +110,6 @@ export async function GET(request: Request) {
   if (statuses && statuses.length > 0) {
     statuses.forEach(st => {
       const metaObj = st.meta as any;
-      // If the edge functions haven't fired yet or meta is empty, default to iad1 so it doesn't get lost in "global" abyss
       const r = (metaObj && metaObj.region) ? metaObj.region : 'iad1';
       
       const regionMeta = VERCEL_REGIONS[r];
@@ -162,7 +167,6 @@ export async function GET(request: Request) {
     });
   }
 
-  // Calculate percentiles helper
   const calculatePercentile = (arr: number[], p: number) => {
     if (arr.length === 0) return 0;
     const sorted = [...arr].sort((a, b) => a - b);
@@ -221,7 +225,6 @@ export async function GET(request: Request) {
 
   const formattedZones = Object.keys(zoneMap).map(zoneKey => {
     const regionsInZone = Object.keys(zoneMap[zoneKey]).map(rKey => {
-      // Only return regions that have actual data OR are aggregate/global (to keep structure clean)
       const data = buildDailyData(zoneMap[zoneKey][rKey].hourlyMap);
       
       return {
