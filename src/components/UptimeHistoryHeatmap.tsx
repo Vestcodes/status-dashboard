@@ -213,13 +213,13 @@ export function UptimeHistoryHeatmap({ projectId, services }: { projectId: strin
                   
                   <span className="text-zinc-400 hidden sm:inline">|</span>
                   <div className="flex items-center gap-1.5 font-mono text-[9px] sm:text-[10px]">
-                     <span title="Average" className="text-zinc-400">AVG:</span><span>{hoveredTile.metric.latency}ms</span>
+                     <span title="Average" className="text-zinc-400">AVG:</span><span>{Math.round(hoveredTile.metric.latency)}ms</span>
                      <span className="text-zinc-600">·</span>
-                     <span title="50th Percentile" className="text-zinc-400">p50:</span><span>{hoveredTile.metric.p50}ms</span>
+                     <span title="50th Percentile" className="text-zinc-400">p50:</span><span>{Math.round(hoveredTile.metric.p50)}ms</span>
                      <span className="text-zinc-600">·</span>
-                     <span title="95th Percentile" className="text-zinc-400">p95:</span><span>{hoveredTile.metric.p95}ms</span>
+                     <span title="95th Percentile" className="text-zinc-400">p95:</span><span>{Math.round(hoveredTile.metric.p95)}ms</span>
                      <span className="text-zinc-600">·</span>
-                     <span title="99th Percentile" className="text-zinc-400">p99:</span><span className={hoveredTile.metric.p99 > 1500 ? 'text-red-400' : ''}>{hoveredTile.metric.p99}ms</span>
+                     <span title="99th Percentile" className="text-zinc-400">p99:</span><span className={hoveredTile.metric.p99 > 1500 ? 'text-red-400' : ''}>{Math.round(hoveredTile.metric.p99)}ms</span>
                   </div>
                 </div>
               )}
