@@ -59,32 +59,32 @@ export async function GET(request: Request) {
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-  // We query both the raw statuses (for the most recent hour or two) and the hourly_statuses table
-  // For simplicity and immediate fix, we'll fetch from the raw statuses table but we know the limit is now safe
-  // since we throttled to 10 minutes (which is 144 pings per day per region per service).
-  // 7 days * 24 hours * 6 pings * 20 regions = 20,160 rows per service for 7 days.
-  // With 100,000 limit, we can easily fetch ~5 services for 7 days.
+  // FETCH AGGREGATED HOURLY DATA FIRST
+  const { data: hourlyStatuses, error: hourlyError } = await supabase
+    .from('hourly_statuses')
+    .select('*')
+    .in('service_id', serviceIds)
+    .gte('hour_timestamp', sevenDaysAgo.toISOString());
 
-  const { data: statuses, error } = await supabase
+  // We still fetch the most recent raw statuses (last 2 hours) to fill the gap until the cron rolls them up
+  const twoHoursAgo = new Date();
+  twoHoursAgo.setHours(twoHoursAgo.getHours() - 2);
+
+  const { data: recentStatuses, error: rawError } = await supabase
     .from('statuses')
     .select('service_id, status, response_time, checked_at, meta')
     .in('service_id', serviceIds)
-    .gte('checked_at', sevenDaysAgo.toISOString())
-    .order('checked_at', { ascending: false })
-    .limit(100000);
+    .gte('checked_at', twoHoursAgo.toISOString())
+    .order('checked_at', { ascending: false });
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (hourlyError || rawError) {
+    return NextResponse.json({ error: (hourlyError || rawError)?.message }, { status: 500 });
   }
 
   const zoneMap: Record<string, Record<string, any>> = {};
 
   zoneMap['global'] = {
-    'global': {
-      id: 'global',
-      name: 'Global Edge Network (Average)',
-      hourlyMap: {}
-    }
+    'global': { id: 'global', name: 'Global Edge Network (Average)', hourlyMap: {} }
   };
 
   const expectedRegions = Object.keys(VERCEL_REGIONS).filter(k => k !== 'global');
@@ -92,66 +92,44 @@ export async function GET(request: Request) {
     const meta = VERCEL_REGIONS[r];
     if (meta) {
       if (!zoneMap[meta.zone]) zoneMap[meta.zone] = {};
-      zoneMap[meta.zone][r] = {
-        id: r,
-        name: meta.label,
-        hourlyMap: {}
-      };
+      zoneMap[meta.zone][r] = { id: r, name: meta.label, hourlyMap: {} };
       if (!zoneMap[meta.zone]['aggregate']) {
-        zoneMap[meta.zone]['aggregate'] = {
-          id: `zone_${meta.zone}`,
-          name: `${ZONES[meta.zone]} (Average)`,
-          hourlyMap: {}
-        };
+        zoneMap[meta.zone]['aggregate'] = { id: `zone_${meta.zone}`, name: `${ZONES[meta.zone]} (Average)`, hourlyMap: {} };
       }
     }
   });
 
-  if (statuses && statuses.length > 0) {
-    statuses.forEach(st => {
-      const metaObj = st.meta as any;
-      const r = (metaObj && metaObj.region) ? metaObj.region : 'iad1';
-      
-      const regionMeta = VERCEL_REGIONS[r];
-      const zoneId = regionMeta ? regionMeta.zone : 'global';
-      
-      if (!zoneMap[zoneId]) zoneMap[zoneId] = {};
-      
-      if (!zoneMap[zoneId][r] && r !== 'global') {
-        zoneMap[zoneId][r] = {
-          id: r,
-          name: regionMeta ? regionMeta.label : (r.toUpperCase() + ' Region'),
-          hourlyMap: {}
-        };
-      }
-      
-      if (!zoneMap[zoneId]['aggregate'] && r !== 'global') {
-        zoneMap[zoneId]['aggregate'] = {
-          id: `zone_${zoneId}`,
-          name: `${ZONES[zoneId] || 'Unknown Zone'} (Average)`,
-          hourlyMap: {}
-        };
-      }
+  // Function to process a rolled up "bucket"
+  const processBucket = (st: any, r: string, dateObj: Date) => {
+    const regionMeta = VERCEL_REGIONS[r];
+    const zoneId = regionMeta ? regionMeta.zone : 'global';
+    
+    if (!zoneMap[zoneId]) zoneMap[zoneId] = {};
+    if (!zoneMap[zoneId][r] && r !== 'global') {
+      zoneMap[zoneId][r] = { id: r, name: regionMeta ? regionMeta.label : (r.toUpperCase() + ' Region'), hourlyMap: {} };
+    }
+    if (!zoneMap[zoneId]['aggregate'] && r !== 'global') {
+      zoneMap[zoneId]['aggregate'] = { id: `zone_${zoneId}`, name: `${ZONES[zoneId] || 'Unknown Zone'} (Average)`, hourlyMap: {} };
+    }
 
-      const dateObj = new Date(st.checked_at);
-      const dayStr = `${String(dateObj.getDate()).padStart(2, '0')}.${String(dateObj.getMonth() + 1).padStart(2, '0')}.${dateObj.getFullYear()}`;
-      const hour = dateObj.getHours();
-      const key = `${dayStr}-${hour}`;
+    const dayStr = `${String(dateObj.getDate()).padStart(2, '0')}.${String(dateObj.getMonth() + 1).padStart(2, '0')}.${dateObj.getFullYear()}`;
+    const hour = dateObj.getHours();
+    const key = `${dayStr}-${hour}`;
+    
+    const updateBucket = (bucket: any, isRaw: boolean) => {
+      if (!bucket.hourlyMap[key]) {
+        bucket.hourlyMap[key] = {
+          count: 0, downCount: 0, degradedCount: 0,
+          totalLatency: 0, latencies: [], 
+          firstDegradedAt: null, firstDownAt: null
+        };
+      }
+      const b = bucket.hourlyMap[key];
       
-      const updateBucket = (bucket: any) => {
-        if (!bucket.hourlyMap[key]) {
-          bucket.hourlyMap[key] = {
-            count: 0, downCount: 0, degradedCount: 0,
-            totalLatency: 0, 
-            latencies: [], 
-            firstDegradedAt: null, firstDownAt: null
-          };
-        }
-        const b = bucket.hourlyMap[key];
+      if (isRaw) {
         b.count++;
         b.totalLatency += st.response_time;
         if (st.response_time > 0) b.latencies.push(st.response_time);
-
         if (st.status === 'down') {
           b.downCount++;
           if (!b.firstDownAt || dateObj < b.firstDownAt) b.firstDownAt = dateObj;
@@ -159,11 +137,50 @@ export async function GET(request: Request) {
           b.degradedCount++;
           if (!b.firstDegradedAt || dateObj < b.firstDegradedAt) b.firstDegradedAt = dateObj;
         }
-      };
+      } else {
+        b.count += st.total_pings;
+        b.downCount += st.down_pings;
+        b.degradedCount += st.degraded_pings;
+        b.totalLatency += st.total_response_time;
+        // Approximation since we don't have individual latencies in rollups
+        if (st.avg_response_time > 0) {
+          for(let i=0; i<st.total_pings; i++) b.latencies.push(st.avg_response_time);
+        }
+        if (st.first_down_at) {
+           const fd = new Date(st.first_down_at);
+           if (!b.firstDownAt || fd < b.firstDownAt) b.firstDownAt = fd;
+        }
+        if (st.first_degraded_at) {
+           const fg = new Date(st.first_degraded_at);
+           if (!b.firstDegradedAt || fg < b.firstDegradedAt) b.firstDegradedAt = fg;
+        }
+      }
+    };
 
-      if (r !== 'global') updateBucket(zoneMap[zoneId][r]);
-      if (r !== 'global') updateBucket(zoneMap[zoneId]['aggregate']);
-      updateBucket(zoneMap['global']['global']);
+    if (r !== 'global') {
+      const isRaw = !st.hasOwnProperty('total_pings');
+      updateBucket(zoneMap[zoneId][r], isRaw);
+      updateBucket(zoneMap[zoneId]['aggregate'], isRaw);
+    }
+    updateBucket(zoneMap['global']['global'], !st.hasOwnProperty('total_pings'));
+  };
+
+  // 1. Process Pre-Calculated Hourly Statuses
+  if (hourlyStatuses && hourlyStatuses.length > 0) {
+    hourlyStatuses.forEach(st => {
+      const r = st.region || 'iad1';
+      const dateObj = new Date(st.hour_timestamp);
+      processBucket(st, r, dateObj);
+    });
+  }
+
+  // 2. Process Raw Statuses (Recent 2 Hours)
+  if (recentStatuses && recentStatuses.length > 0) {
+    recentStatuses.forEach(st => {
+      const metaObj = st.meta as any;
+      const r = (metaObj && metaObj.region) ? metaObj.region : 'iad1';
+      const dateObj = new Date(st.checked_at);
+      processBucket(st, r, dateObj);
     });
   }
 
@@ -194,10 +211,10 @@ export async function GET(request: Request) {
           let eventTime = null;
           if (agg.downCount > 0) {
             status = "down";
-            eventTime = agg.firstDownAt.toISOString();
+            eventTime = agg.firstDownAt ? agg.firstDownAt.toISOString() : null;
           } else if (agg.degradedCount > 0) {
             status = "degraded";
-            eventTime = agg.firstDegradedAt.toISOString();
+            eventTime = agg.firstDegradedAt ? agg.firstDegradedAt.toISOString() : null;
           }
           
           let uptime = 100;
