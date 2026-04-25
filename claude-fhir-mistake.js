@@ -3,7 +3,7 @@ import crypto from "node:crypto";
 const BASE_URL = "https://fhir.dev.ovok.com";
 // Using the "Claude code - Telepress Test" credentials
 const CLIENT_ID = "a1ab36d5-eac7-4c94-9d1e-e0bcd3afc794";
-const CLIENT_SECRET = "9bdcca40fa9e04c0e1ae74cd995c6b9c049ebf34add84f6d04900e7f143c14fc";
+REDACTED
 
 let accessToken = "";
 let tokenExpiresAt = 0;
