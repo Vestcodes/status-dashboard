@@ -223,18 +223,18 @@ export function UptimeHistoryHeatmap({ projectId, services }: { projectId: strin
               ) : (
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 w-full mt-1 sm:mt-0">
                   <span className="text-zinc-400 hidden sm:inline">|</span>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
                     <span className={`font-semibold text-xs ${activeTile.metric.status === 'operational' ? 'text-green-500' : activeTile.metric.status === 'degraded' ? 'text-yellow-500' : 'text-red-500'}`}>
                       {activeTile.metric.status.toUpperCase()}
                     </span>
                     
                     {(activeTile.metric.status === 'degraded' || activeTile.metric.status === 'down') && activeTile.metric.eventTimes && activeTile.metric.eventTimes.length > 0 && (
-                      <>
-                        <span className="text-zinc-400">|</span>
-                        <span className="text-xs text-zinc-500 shrink-0 flex gap-1 flex-wrap">
-                          Triggered: {activeTile.metric.eventTimes.map(t => new Date(t).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})).join(', ')}
-                        </span>
-                      </>
+                      <div className="flex items-start sm:items-center gap-2 w-full">
+                        <span className="text-zinc-400 hidden sm:inline">|</span>
+                        <div className="text-xs text-zinc-500 max-w-[280px] break-words">
+                          <span className="font-semibold text-zinc-400">Triggered:</span> {activeTile.metric.eventTimes.map(t => new Date(t).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})).join(', ')}
+                        </div>
+                      </div>
                     )}
                   </div>
                   
