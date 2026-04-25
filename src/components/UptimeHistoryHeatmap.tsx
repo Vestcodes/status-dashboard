@@ -52,6 +52,7 @@ export function UptimeHistoryHeatmap({ projectId, services }: { projectId: strin
   const [selectedRegionId, setSelectedRegionId] = useState<string>("");
   
   const [hoveredTile, setHoveredTile] = useState<{ date: string; metric: HourlyMetric } | null>(null);
+  const [lockedTile, setLockedTile] = useState<{ date: string; metric: HourlyMetric } | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -92,6 +93,8 @@ export function UptimeHistoryHeatmap({ projectId, services }: { projectId: strin
 
   const selectedZone = useMemo(() => zones.find(z => z.id === selectedZoneId), [selectedZoneId, zones]);
   const selectedRegion = useMemo(() => selectedZone?.regions.find(r => r.id === selectedRegionId), [selectedZone, selectedRegionId]);
+
+  const activeTile = lockedTile || hoveredTile;
 
   if (loading) {
     return (
@@ -167,9 +170,16 @@ export function UptimeHistoryHeatmap({ projectId, services }: { projectId: strin
                     <div 
                       key={`${day.dateStr}-${hour.hour}`}
                       className={`flex-1 h-6 sm:h-8 rounded-sm cursor-pointer transition-all duration-200 hover:scale-[1.15] hover:z-10 ${getStatusColor(hour.status, hour.noData)} ${!hour.noData ? 'opacity-80 hover:opacity-100' : ''}`}
-                      onMouseEnter={() => setHoveredTile({ date: day.dateStr, metric: hour })}
-                      onMouseLeave={() => setHoveredTile(null)}
-                      onClick={() => setHoveredTile({ date: day.dateStr, metric: hour })}
+                      onMouseEnter={() => !lockedTile && setHoveredTile({ date: day.dateStr, metric: hour })}
+                      onMouseLeave={() => !lockedTile && setHoveredTile(null)}
+                      onClick={() => {
+                        if (lockedTile && lockedTile.metric.hour === hour.hour && lockedTile.date === day.dateStr) {
+                          setLockedTile(null);
+                        } else {
+                          setLockedTile({ date: day.dateStr, metric: hour });
+                          setHoveredTile(null);
+                        }
+                      }}
                     />
                   ))}
                 </div>
@@ -188,44 +198,53 @@ export function UptimeHistoryHeatmap({ projectId, services }: { projectId: strin
         </div>
 
         <div className="w-full xl:w-auto flex items-center justify-start xl:justify-end text-sm min-h-[40px]">
-          {hoveredTile ? (
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-zinc-700 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 rounded-md border border-zinc-200 dark:border-zinc-700 shadow-sm transition-all w-full sm:w-auto">
-              <span className="font-medium text-[10px] sm:text-xs shrink-0">{hoveredTile.date}</span>
+          {activeTile ? (
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-zinc-700 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 rounded-md border border-zinc-200 dark:border-zinc-700 shadow-sm transition-all w-full sm:w-auto relative">
+              {lockedTile && (
+                <button 
+                  onClick={() => setLockedTile(null)} 
+                  className="absolute -top-2 -right-2 bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-zinc-600 dark:text-zinc-300 rounded-full w-5 h-5 flex items-center justify-center text-xs shadow-sm transition-colors z-20"
+                  title="Unlock selection"
+                >
+                  ✕
+                </button>
+              )}
+              <span className="font-medium text-[10px] sm:text-xs shrink-0">{activeTile.date}</span>
               <span className="text-zinc-400 hidden sm:inline">|</span>
-              <span className="font-mono text-[10px] sm:text-xs shrink-0">{hoveredTile.metric.hour.toString().padStart(2, '0')}:00 - {(hoveredTile.metric.hour + 1).toString().padStart(2, '0')}:00</span>
+              <span className="font-mono text-[10px] sm:text-xs shrink-0">{activeTile.metric.hour.toString().padStart(2, '0')}:00 - {(activeTile.metric.hour + 1).toString().padStart(2, '0')}:00</span>
               <span className="text-zinc-400 hidden sm:inline">|</span>
-              {hoveredTile.metric.noData ? (
+              {activeTile.metric.noData ? (
                 <span className="text-zinc-400 italic text-[10px] sm:text-xs w-full sm:w-auto mt-1 sm:mt-0 block sm:inline">No metrics collected</span>
               ) : (
                 <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 w-full sm:w-auto mt-1 sm:mt-0">
-                  <span className={`font-semibold text-[10px] sm:text-xs ${hoveredTile.metric.status === 'operational' ? 'text-green-500' : hoveredTile.metric.status === 'degraded' ? 'text-yellow-500' : 'text-red-500'}`}>
-                    {hoveredTile.metric.status.toUpperCase()}
+                  <span className={`font-semibold text-[10px] sm:text-xs ${activeTile.metric.status === 'operational' ? 'text-green-500' : activeTile.metric.status === 'degraded' ? 'text-yellow-500' : 'text-red-500'}`}>
+                    {activeTile.metric.status.toUpperCase()}
                   </span>
                   
-                  {(hoveredTile.metric.status === 'degraded' || hoveredTile.metric.status === 'down') && hoveredTile.metric.eventTime && (
+                  {(activeTile.metric.status === 'degraded' || activeTile.metric.status === 'down') && activeTile.metric.eventTime && (
                     <>
                       <span className="text-zinc-400 hidden sm:inline">|</span>
                       <span className="text-[10px] sm:text-xs text-zinc-500 shrink-0">
-                        Triggered at: {new Date(hoveredTile.metric.eventTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        Triggered at: {new Date(activeTile.metric.eventTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                       </span>
                     </>
                   )}
                   
                   <span className="text-zinc-400 hidden sm:inline">|</span>
                   <div className="flex items-center gap-1.5 font-mono text-[9px] sm:text-[10px]">
-                     <span title="Average" className="text-zinc-400">AVG:</span><span>{Math.round(hoveredTile.metric.latency)}ms</span>
+                     <span title="Average" className="text-zinc-400">AVG:</span><span>{Math.round(activeTile.metric.latency)}ms</span>
                      <span className="text-zinc-600">·</span>
-                     <span title="50th Percentile" className="text-zinc-400">p50:</span><span>{Math.round(hoveredTile.metric.p50)}ms</span>
+                     <span title="50th Percentile" className="text-zinc-400">p50:</span><span>{Math.round(activeTile.metric.p50)}ms</span>
                      <span className="text-zinc-600">·</span>
-                     <span title="95th Percentile" className="text-zinc-400">p95:</span><span>{Math.round(hoveredTile.metric.p95)}ms</span>
+                     <span title="95th Percentile" className="text-zinc-400">p95:</span><span>{Math.round(activeTile.metric.p95)}ms</span>
                      <span className="text-zinc-600">·</span>
-                     <span title="99th Percentile" className="text-zinc-400">p99:</span><span className={hoveredTile.metric.p99 > 1500 ? 'text-red-400' : ''}>{Math.round(hoveredTile.metric.p99)}ms</span>
+                     <span title="99th Percentile" className="text-zinc-400">p99:</span><span className={activeTile.metric.p99 > 1500 ? 'text-red-400' : ''}>{Math.round(activeTile.metric.p99)}ms</span>
                   </div>
                 </div>
               )}
             </div>
           ) : (
-            <span className="text-zinc-400 text-xs italic hidden sm:block">Hover over a tile to view exact latency percentiles.</span>
+            <span className="text-zinc-400 text-xs italic hidden sm:block">Hover or tap over a tile to view exact latency percentiles.</span>
           )}
         </div>
       </div>
