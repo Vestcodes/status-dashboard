@@ -13,7 +13,7 @@ interface HourlyMetric {
   p99: number;
   incidentCount: number;
   noData?: boolean;
-  eventTime?: string;
+  eventTimes?: string[];
 }
 
 interface DailyMetric {
@@ -228,11 +228,11 @@ export function UptimeHistoryHeatmap({ projectId, services }: { projectId: strin
                       {activeTile.metric.status.toUpperCase()}
                     </span>
                     
-                    {(activeTile.metric.status === 'degraded' || activeTile.metric.status === 'down') && activeTile.metric.eventTime && (
+                    {(activeTile.metric.status === 'degraded' || activeTile.metric.status === 'down') && activeTile.metric.eventTimes && activeTile.metric.eventTimes.length > 0 && (
                       <>
                         <span className="text-zinc-400">|</span>
-                        <span className="text-xs text-zinc-500 shrink-0">
-                          Triggered: {new Date(activeTile.metric.eventTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        <span className="text-xs text-zinc-500 shrink-0 flex gap-1 flex-wrap">
+                          Triggered: {activeTile.metric.eventTimes.map(t => new Date(t).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})).join(', ')}
                         </span>
                       </>
                     )}

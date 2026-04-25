@@ -116,12 +116,12 @@ export async function GET(request: Request) {
     const hour = dateObj.getHours();
     const key = `${dayStr}-${hour}`;
     
-    const updateBucket = (bucket: any, isRaw: boolean) => {
+      const updateBucket = (bucket: any, isRaw: boolean) => {
       if (!bucket.hourlyMap[key]) {
         bucket.hourlyMap[key] = {
           count: 0, downCount: 0, degradedCount: 0,
           totalLatency: 0, latencies: [], 
-          firstDegradedAt: null, firstDownAt: null
+          downEvents: [], degradedEvents: []
         };
       }
       const b = bucket.hourlyMap[key];
@@ -132,27 +132,24 @@ export async function GET(request: Request) {
         if (st.response_time > 0) b.latencies.push(st.response_time);
         if (st.status === 'down') {
           b.downCount++;
-          if (!b.firstDownAt || dateObj < b.firstDownAt) b.firstDownAt = dateObj;
+          b.downEvents.push(st.checked_at);
         } else if (st.status === 'degraded') {
           b.degradedCount++;
-          if (!b.firstDegradedAt || dateObj < b.firstDegradedAt) b.firstDegradedAt = dateObj;
+          b.degradedEvents.push(st.checked_at);
         }
       } else {
         b.count += st.total_pings;
         b.downCount += st.down_pings;
         b.degradedCount += st.degraded_pings;
         b.totalLatency += st.total_response_time;
-        // Approximation since we don't have individual latencies in rollups
         if (st.avg_response_time > 0) {
           for(let i=0; i<st.total_pings; i++) b.latencies.push(st.avg_response_time);
         }
-        if (st.first_down_at) {
-           const fd = new Date(st.first_down_at);
-           if (!b.firstDownAt || fd < b.firstDownAt) b.firstDownAt = fd;
+        if (st.down_events && Array.isArray(st.down_events)) {
+           b.downEvents.push(...st.down_events);
         }
-        if (st.first_degraded_at) {
-           const fg = new Date(st.first_degraded_at);
-           if (!b.firstDegradedAt || fg < b.firstDegradedAt) b.firstDegradedAt = fg;
+        if (st.degraded_events && Array.isArray(st.degraded_events)) {
+           b.degradedEvents.push(...st.degraded_events);
         }
       }
     };
@@ -208,18 +205,32 @@ export async function GET(request: Request) {
           hours.push({ hour: h, uptime: 100, status: "operational", latency: 0, p50: 0, p90: 0, p95: 0, p99: 0, incidentCount: 0, noData: true });
         } else {
           let status = "operational";
-          let eventTime = null;
+          let eventTimes: string[] = [];
+          
           if (agg.downCount > 0) {
-            status = "down";
-            eventTime = agg.firstDownAt ? agg.firstDownAt.toISOString() : null;
+            // Wait, for aggregate global zones, 1 failure out of 100 shouldn't trigger "DOWN".
+            // Let's set a 10% threshold for "DOWN" and a 2% threshold for "DEGRADED" on aggregate zones.
+            // But for specific regions, any failure is a failure.
+            
+            // We can calculate the failure rate.
+            const failRate = agg.downCount / agg.count;
+            if (failRate > 0.05) {
+                status = "down";
+            } else {
+                status = "degraded"; // It's just a blip, not completely down
+            }
+            eventTimes = agg.downEvents || [];
           } else if (agg.degradedCount > 0) {
             status = "degraded";
-            eventTime = agg.firstDegradedAt ? agg.firstDegradedAt.toISOString() : null;
+            eventTimes = agg.degradedEvents || [];
           }
           
           let uptime = 100;
           if (agg.downCount > 0) uptime = Math.max(0, 100 - ((agg.downCount / agg.count) * 100));
           else if (agg.degradedCount > 0) uptime = Math.max(0, 100 - ((agg.degradedCount / agg.count) * 10));
+
+          // Sort and deduplicate events
+          eventTimes = [...new Set(eventTimes)].sort();
 
           hours.push({
             hour: h,
@@ -231,7 +242,7 @@ export async function GET(request: Request) {
             p95: calculatePercentile(agg.latencies, 95),
             p99: calculatePercentile(agg.latencies, 99),
             incidentCount: agg.downCount,
-            eventTime
+            eventTimes
           });
         }
       }
