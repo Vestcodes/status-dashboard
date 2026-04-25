@@ -197,48 +197,56 @@ export function UptimeHistoryHeatmap({ projectId, services }: { projectId: strin
           <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-sm bg-gray-100 dark:bg-zinc-800/50 border border-zinc-200/50 dark:border-zinc-800" /> No Data</div>
         </div>
 
-        <div className="w-full xl:w-auto flex items-center justify-start xl:justify-end text-sm min-h-[40px]">
+        <div className="w-full xl:w-auto flex items-center justify-start xl:justify-end text-sm min-h-[40px] max-w-full">
           {activeTile ? (
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-zinc-700 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 rounded-md border border-zinc-200 dark:border-zinc-700 shadow-sm transition-all w-full sm:w-auto relative">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 text-zinc-700 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-800 px-3 py-2 rounded-md border border-zinc-200 dark:border-zinc-700 shadow-sm transition-all w-full relative">
               {lockedTile && (
                 <button 
                   onClick={() => setLockedTile(null)} 
-                  className="absolute -top-2 -right-2 bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-zinc-600 dark:text-zinc-300 rounded-full w-5 h-5 flex items-center justify-center text-xs shadow-sm transition-colors z-20"
+                  className="absolute top-2 right-2 sm:-top-2 sm:-right-2 bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-zinc-600 dark:text-zinc-300 rounded-full w-6 h-6 sm:w-5 sm:h-5 flex items-center justify-center text-xs shadow-sm transition-colors z-20"
                   title="Unlock selection"
                 >
                   ✕
                 </button>
               )}
-              <span className="font-medium text-[10px] sm:text-xs shrink-0">{activeTile.date}</span>
-              <span className="text-zinc-400 hidden sm:inline">|</span>
-              <span className="font-mono text-[10px] sm:text-xs shrink-0">{activeTile.metric.hour.toString().padStart(2, '0')}:00 - {(activeTile.metric.hour + 1).toString().padStart(2, '0')}:00</span>
-              <span className="text-zinc-400 hidden sm:inline">|</span>
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-xs shrink-0">{activeTile.date}</span>
+                <span className="text-zinc-400">|</span>
+                <span className="font-mono text-xs shrink-0">{activeTile.metric.hour.toString().padStart(2, '0')}:00 - {(activeTile.metric.hour + 1).toString().padStart(2, '0')}:00</span>
+              </div>
+              
               {activeTile.metric.noData ? (
-                <span className="text-zinc-400 italic text-[10px] sm:text-xs w-full sm:w-auto mt-1 sm:mt-0 block sm:inline">No metrics collected</span>
+                <>
+                  <span className="text-zinc-400 hidden sm:inline">|</span>
+                  <span className="text-zinc-400 italic text-xs w-full sm:w-auto mt-1 sm:mt-0 block sm:inline">No metrics collected</span>
+                </>
               ) : (
-                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 w-full sm:w-auto mt-1 sm:mt-0">
-                  <span className={`font-semibold text-[10px] sm:text-xs ${activeTile.metric.status === 'operational' ? 'text-green-500' : activeTile.metric.status === 'degraded' ? 'text-yellow-500' : 'text-red-500'}`}>
-                    {activeTile.metric.status.toUpperCase()}
-                  </span>
-                  
-                  {(activeTile.metric.status === 'degraded' || activeTile.metric.status === 'down') && activeTile.metric.eventTime && (
-                    <>
-                      <span className="text-zinc-400 hidden sm:inline">|</span>
-                      <span className="text-[10px] sm:text-xs text-zinc-500 shrink-0">
-                        Triggered at: {new Date(activeTile.metric.eventTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                      </span>
-                    </>
-                  )}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 w-full mt-1 sm:mt-0">
+                  <span className="text-zinc-400 hidden sm:inline">|</span>
+                  <div className="flex items-center gap-2">
+                    <span className={`font-semibold text-xs ${activeTile.metric.status === 'operational' ? 'text-green-500' : activeTile.metric.status === 'degraded' ? 'text-yellow-500' : 'text-red-500'}`}>
+                      {activeTile.metric.status.toUpperCase()}
+                    </span>
+                    
+                    {(activeTile.metric.status === 'degraded' || activeTile.metric.status === 'down') && activeTile.metric.eventTime && (
+                      <>
+                        <span className="text-zinc-400">|</span>
+                        <span className="text-xs text-zinc-500 shrink-0">
+                          Triggered: {new Date(activeTile.metric.eventTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        </span>
+                      </>
+                    )}
+                  </div>
                   
                   <span className="text-zinc-400 hidden sm:inline">|</span>
-                  <div className="flex items-center gap-1.5 font-mono text-[9px] sm:text-[10px]">
-                     <span title="Average" className="text-zinc-400">AVG:</span><span>{Math.round(activeTile.metric.latency)}ms</span>
-                     <span className="text-zinc-600">·</span>
-                     <span title="50th Percentile" className="text-zinc-400">p50:</span><span>{Math.round(activeTile.metric.p50)}ms</span>
-                     <span className="text-zinc-600">·</span>
-                     <span title="95th Percentile" className="text-zinc-400">p95:</span><span>{Math.round(activeTile.metric.p95)}ms</span>
-                     <span className="text-zinc-600">·</span>
-                     <span title="99th Percentile" className="text-zinc-400">p99:</span><span className={activeTile.metric.p99 > 1500 ? 'text-red-400' : ''}>{Math.round(activeTile.metric.p99)}ms</span>
+                  <div className="flex flex-wrap items-center gap-2 font-mono text-[10px] bg-white/50 dark:bg-black/20 p-1.5 rounded sm:bg-transparent sm:p-0 sm:rounded-none w-full sm:w-auto">
+                     <div className="flex items-center gap-1"><span title="Average" className="text-zinc-400">AVG:</span><span>{Math.round(activeTile.metric.latency)}ms</span></div>
+                     <span className="text-zinc-600 hidden sm:inline">·</span>
+                     <div className="flex items-center gap-1"><span title="50th Percentile" className="text-zinc-400">p50:</span><span>{Math.round(activeTile.metric.p50)}ms</span></div>
+                     <span className="text-zinc-600 hidden sm:inline">·</span>
+                     <div className="flex items-center gap-1"><span title="95th Percentile" className="text-zinc-400">p95:</span><span>{Math.round(activeTile.metric.p95)}ms</span></div>
+                     <span className="text-zinc-600 hidden sm:inline">·</span>
+                     <div className="flex items-center gap-1"><span title="99th Percentile" className="text-zinc-400">p99:</span><span className={activeTile.metric.p99 > 1500 ? 'text-red-400' : ''}>{Math.round(activeTile.metric.p99)}ms</span></div>
                   </div>
                 </div>
               )}
